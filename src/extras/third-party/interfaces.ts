@@ -73,6 +73,17 @@ export interface ThirdPartyLoginHandler {
 }
 
 /**
+ * OAuth2 state 临时存储
+ * 用于校验回调时的 state 参数，防止 CSRF
+ */
+export interface StateStore {
+  /** 保存 state，返回保存的 key */
+  save(state: string, ttlSeconds: number): Promise<string>;
+  /** 校验并消费 state，返回是否有效 */
+  verify(key: string, state: string): Promise<boolean>;
+}
+
+/**
  * 第三方认证模块配置
  */
 export interface ThirdPartyAuthModuleOptions {
@@ -87,6 +98,10 @@ export interface ThirdPartyAuthModuleOptions {
    * 登录路径前缀（默认 /auth/third-party）
    */
   routePrefix?: string;
+  /**
+   * state 临时存储（默认内存实现，单实例可用；多实例请提供 Redis 实现）
+   */
+   stateStore?: StateStore;
 }
 
 /**
