@@ -15,17 +15,16 @@ import type { ThirdPartyLoginHandler } from './interfaces';
 
 /**
  * 第三方登录控制器
- * 提供 /:provider/login 重定向 与 /:provider/callback 回调处理
+ * 提供 /auth/third-party/:provider/login 重定向
+ * 与 /auth/third-party/:provider/callback 回调处理
  */
-@Controller()
+@Controller('auth/third-party')
 export class ThirdPartyAuthController {
   constructor(
     private readonly oauth2Client: OAuth2ClientService,
     private readonly authService: AuthService,
     @Inject('THIRD_PARTY_LOGIN_HANDLER')
-    private readonly loginHandler: ThirdPartyLoginHandler,
-    @Inject('THIRD_PARTY_ROUTE_PREFIX')
-    private readonly routePrefix: string,
+    private readonly loginHandler: ThirdPartyLoginHandler
   ) {}
 
   /**

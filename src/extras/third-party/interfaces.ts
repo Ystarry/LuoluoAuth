@@ -95,10 +95,6 @@ export interface ThirdPartyAuthModuleOptions {
    */
   loginHandler: ThirdPartyLoginHandler;
   /**
-   * 登录路径前缀（默认 /auth/third-party）
-   */
-  routePrefix?: string;
-  /**
    * 用于签名 OAuth2 state 的密钥
    * 防止 CSRF，生产环境必须配置强密钥
    */
