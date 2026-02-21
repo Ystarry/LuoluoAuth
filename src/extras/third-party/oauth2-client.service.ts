@@ -124,7 +124,10 @@ export class OAuth2ClientService {
 
     const response = await fetch(provider.tokenEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
       body: body.toString(),
     });
 
