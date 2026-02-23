@@ -105,10 +105,34 @@ export interface ThirdPartyAuthModuleOptions {
  * Passport Bridge 配置
  */
 export interface PassportBridgeOptions {
-  /** Passport 策略实例列表 */
-  strategies: Record<string, any>;
+  /** Passport 实例（通常即 import * as passport from 'passport'） */
+  passport: PassportInstance;
+  /** Passport 策略实例映射，key 为策略名 */
+  strategies: Record<string, PassportStrategyLike>;
   /** 登录成功后的处理函数 */
   loginHandler: ThirdPartyLoginHandler;
-  /** 回调路径前缀（默认 /auth/passport） */
-  routePrefix?: string;
+}
+
+/**
+ * 最小化的 Passport 实例接口
+ */
+export interface PassportInstance {
+  use(name: string, strategy: PassportStrategyLike): void;
+  authenticate(
+    name: string,
+    options?: Record<string, unknown>,
+    callback?: (
+      err: Error | null,
+      user?: unknown,
+      info?: unknown,
+    ) => void | Promise<void>,
+  ): (req: unknown, res: unknown, next: unknown) => void;
+}
+
+/**
+ * 最小化的 Passport Strategy 接口
+ */
+export interface PassportStrategyLike {
+  name?: string;
+  authenticate(req: unknown, options?: Record<string, unknown>): void;
 }
