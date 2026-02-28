@@ -2,6 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OAuth2ClientService } from './oauth2-client.service';
 import type { OAuth2ProviderConfig } from './interfaces';
 
+function mockResponse(body: Record<string, unknown>): Response {
+  return {
+    ok: true,
+    json: () => Promise.resolve(body),
+  } as Response;
+}
+
 describe('OAuth2ClientService', () => {
   let service: OAuth2ClientService;
   const stateSecret = 'test-state-secret';
@@ -61,21 +68,20 @@ describe('OAuth2ClientService', () => {
     const stateMatch = authorizationUrl.match(/state=([^&]+)/);
     const state = decodeURIComponent(stateMatch![1]);
 
-    jest.spyOn(global, 'fetch').mockImplementation(async (url) => {
-      if (url === provider.tokenEndpoint) {
-        return {
-          ok: true,
-          json: async () => ({ access_token: 'access-token' }),
-        } as Response;
-      }
-      if (url === provider.userInfoEndpoint) {
-        return {
-          ok: true,
-          json: async () => ({ id: '123', email: 'a@b.com', name: 'Alice' }),
-        } as Response;
-      }
-      throw new Error('Unexpected fetch call');
-    });
+    jest
+      .spyOn(global, 'fetch')
+      .mockImplementation((url: string | Request | RequestInfo) => {
+        const urlString = typeof url === 'string' ? url : String(url);
+        if (urlString === provider.tokenEndpoint) {
+          return Promise.resolve(mockResponse({ access_token: 'access-token' }));
+        }
+        if (urlString === provider.userInfoEndpoint) {
+          return Promise.resolve(
+            mockResponse({ id: '123', email: 'a@b.com', name: 'Alice' }),
+          );
+        }
+        return Promise.reject(new Error('Unexpected fetch call'));
+      });
 
     const user = await service.handleCallback('test', 'code', state);
     expect(user.providerUserId).toBe('123');
@@ -121,19 +127,23 @@ describe('OAuth2ClientService', () => {
 
     const header = Buffer.from('{"alg":"none"}').toString('base64url');
     const payload = Buffer.from(
-      JSON.stringify({ sub: 'oidc-123', email: 'oidc@example.com', name: 'Oidc' }),
+      JSON.stringify({
+        sub: 'oidc-123',
+        email: 'oidc@example.com',
+        name: 'Oidc',
+      }),
     ).toString('base64url');
     const idToken = `${header}.${payload}.`;
 
-    jest.spyOn(global, 'fetch').mockImplementation(async (url) => {
-      if (url === oidcProvider.tokenEndpoint) {
-        return {
-          ok: true,
-          json: async () => ({ id_token: idToken }),
-        } as Response;
-      }
-      throw new Error('Unexpected fetch call');
-    });
+    jest
+      .spyOn(global, 'fetch')
+      .mockImplementation((url: string | Request | RequestInfo) => {
+        const urlString = typeof url === 'string' ? url : String(url);
+        if (urlString === oidcProvider.tokenEndpoint) {
+          return Promise.resolve(mockResponse({ id_token: idToken }));
+        }
+        return Promise.reject(new Error('Unexpected fetch call'));
+      });
 
     const user = await oidcService.handleCallback('oidc', 'code', state);
     expect(user.providerUserId).toBe('oidc-123');

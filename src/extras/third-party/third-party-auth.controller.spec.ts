@@ -21,9 +21,10 @@ describe('ThirdPartyAuthModule', () => {
               redirectUri: 'https://app.example.com/auth/google/callback',
             }),
           ],
-          loginHandler: async (userInfo) => ({
-            userId: `google_${userInfo.providerUserId}`,
-            roles: ['user'],
+          loginHandler: (userInfo) =>
+             Promise.resolve({
+               userId: `google_${userInfo.providerUserId}`,
+               roles: ['user'],
           }),
         }),
       ],

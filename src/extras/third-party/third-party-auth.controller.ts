@@ -63,7 +63,11 @@ export class ThirdPartyAuthController {
       throw new BadRequestException('Missing code or state');
     }
 
-    const userInfo = await this.oauth2Client.handleCallback(provider, code, state);
+    const userInfo = await this.oauth2Client.handleCallback(
+      provider,
+      code,
+      state,
+    );
     const localUser = await this.loginHandler(userInfo, req, res);
 
     const token = await this.authService.login(
