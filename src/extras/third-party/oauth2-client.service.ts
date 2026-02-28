@@ -75,14 +75,6 @@ export class OAuth2ClientService {
       throw new Error('Failed to obtain access token');
     }
 
-    // OIDC 模式：优先从 id_token 解析用户信息
-    if (provider.idTokenExtractor && tokenResponse.id_token) {
-      const payload = this.parseJwt(tokenResponse.id_token as string);
-      const user = provider.idTokenExtractor(payload);
-      user.provider = provider.id;
-      return user;
-    }
-
     if (!provider.userInfoEndpoint) {
       throw new Error(
         `Provider ${providerId} missing userInfoEndpoint and idTokenExtractor`,
