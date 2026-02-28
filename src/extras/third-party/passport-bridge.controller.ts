@@ -70,7 +70,10 @@ export class PassportBridgeController {
         }
 
         try {
-          const userInfo = this.normalizeProfile(profile, strategy);
+          const userInfo = this.normalizeProfile(
+            profile as Record<string, unknown>,
+            strategy,
+          );
           const localUser = await this.loginHandler(userInfo, req, res);
           const token = await this.authService.login(
             localUser.userId,

@@ -53,8 +53,9 @@ export interface OAuth2ProviderConfig {
   tokenExtractor?: (response: Record<string, unknown>) => string;
   /**
    * 使用 accessToken 获取并归一化用户信息
+   * OIDC 模式下若提供 idTokenExtractor，可省略
    */
-  userInfoExtractor: (response: Record<string, unknown>) => ThirdPartyUserInfo;
+  userInfoExtractor?: (response: Record<string, unknown>) => ThirdPartyUserInfo;
   /**
    * OIDC 模式下从 id_token payload 提取用户信息
    */
@@ -125,7 +126,7 @@ export interface PassportInstance {
       err: Error | null,
       user?: unknown,
       info?: unknown,
-    ) => void | Promise<void>,
+    ) => unknown,
   ): (req: unknown, res: unknown, next: unknown) => void;
 }
 

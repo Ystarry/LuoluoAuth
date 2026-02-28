@@ -81,6 +81,12 @@ export class OAuth2ClientService {
       );
     }
 
+    if (!provider.userInfoExtractor) {
+      throw new Error(
+        `Provider ${providerId} missing userInfoExtractor`,
+      );
+    }
+
     const userInfoResponse = await this.fetchUserInfo(
       provider.userInfoEndpoint,
       accessToken,
