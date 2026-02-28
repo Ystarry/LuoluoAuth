@@ -71,10 +71,13 @@ describe('OAuth2ClientService', () => {
     jest
       .spyOn(global, 'fetch')
       .mockImplementation((url: string | Request | RequestInfo) => {
-        const urlString = typeof url === 'string' ? url : String(url);
-        if (urlString === provider.tokenEndpoint) {
-          return Promise.resolve(mockResponse({ access_token: 'access-token' }));
-        }
+          const urlString =
+              typeof url === 'string' ? url : (url as Request).url || String(url);
+          if (urlString === provider.tokenEndpoint) {
+              return Promise.resolve(
+                  mockResponse({ access_token: 'access-token' }),
+              );
+          }
         if (urlString === provider.userInfoEndpoint) {
           return Promise.resolve(
             mockResponse({ id: '123', email: 'a@b.com', name: 'Alice' }),
@@ -138,10 +141,11 @@ describe('OAuth2ClientService', () => {
     jest
       .spyOn(global, 'fetch')
       .mockImplementation((url: string | Request | RequestInfo) => {
-        const urlString = typeof url === 'string' ? url : String(url);
-        if (urlString === oidcProvider.tokenEndpoint) {
-          return Promise.resolve(mockResponse({ id_token: idToken }));
-        }
+          const urlString =
+              typeof url === 'string' ? url : (url as Request).url || String(url);
+          if (urlString === oidcProvider.tokenEndpoint) {
+              return Promise.resolve(mockResponse({ id_token: idToken }));
+          }
         return Promise.reject(new Error('Unexpected fetch call'));
       });
 
