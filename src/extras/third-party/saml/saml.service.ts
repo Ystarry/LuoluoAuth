@@ -34,10 +34,8 @@ export class SamlService {
     const sp = this.buildServiceProvider(samlify);
     const idpInstance = this.buildIdentityProvider(samlify, idp);
 
-    const binding =
-      idp.binding === 'post'
-        ? samlify.Constants.namespace.binding.post
-        : samlify.Constants.namespace.binding.redirect;
+    // samlify createLoginRequest 接收 'redirect' / 'post' 简写，非完整 URN
+    const binding = idp.binding === 'post' ? 'post' : 'redirect';
 
     const { context, entityEndpoint } = sp.createLoginRequest(
       idpInstance,
