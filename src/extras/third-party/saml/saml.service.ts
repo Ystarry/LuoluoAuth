@@ -30,7 +30,7 @@ export class SamlService {
    */
   async createLoginRequest(idpId: string): Promise<SamlLoginRequest> {
     const idp = this.getIdp(idpId);
-    const samlify = await this.loadSamlify();
+    const samlify = this.loadSamlify();
     const sp = this.buildServiceProvider(samlify);
     const idpInstance = this.buildIdentityProvider(samlify, idp);
 
@@ -73,7 +73,7 @@ export class SamlService {
     relayState?: string,
   ): Promise<ThirdPartyUserInfo> {
     const idp = this.getIdp(idpId);
-    const samlify = await this.loadSamlify();
+    const samlify = this.loadSamlify();
     const sp = this.buildServiceProvider(samlify);
     const idpInstance = this.buildIdentityProvider(samlify, idp);
 
@@ -121,7 +121,7 @@ export class SamlService {
    * 生成 SP metadata XML
    */
   async getServiceProviderMetadata(): Promise<string> {
-    const samlify = await this.loadSamlify();
+    const samlify = this.loadSamlify();
     const sp = this.buildServiceProvider(samlify);
     return sp.getMetadata();
   }
@@ -136,14 +136,9 @@ export class SamlService {
 
   private async loadSamlify(): Promise<SamlifyLike> {
     try {
-      // 使用 new Function 绕过 TypeScript 对 CommonJS 的 import() 转换，
-      // 保证 samlify 作为可选依赖在运行时动态加载
-      return (await new Function(
-         'return import("samlify")',
-      )()) as unknown as SamlifyLike;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      return require('samlify') as unknown as SamlifyLike;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to load samlify:', error);
       throw new Error(
         'samlify is required for SAML support. Please install it: npm install samlify',
       );
