@@ -169,16 +169,23 @@ export class SamlService {
         metadata: idp.metadata,
       });
     }
+    const bindingUri =
+      idp.binding === 'post'
+        ? samlify.Constants.namespace.binding.post
+        : samlify.Constants.namespace.binding.redirect;
 
     return new samlify.IdentityProvider({
       entityID: idp.name,
       singleSignOnService: [
         {
-          Binding:
-            idp.binding === 'post'
-              ? samlify.Constants.namespace.binding.post
-              : samlify.Constants.namespace.binding.redirect,
+          Binding: bindingUri,
           Location: idp.ssoLoginUrl ?? '',
+        },
+      ],
+      singleLogoutService: [
+        {
+          Binding: bindingUri,
+          Location: `${idp.ssoLoginUrl ?? ''}/logout`,
         },
       ],
       signingCert: idp.certificate,
