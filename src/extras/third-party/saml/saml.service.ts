@@ -136,7 +136,11 @@ export class SamlService {
 
   private async loadSamlify(): Promise<SamlifyLike> {
     try {
-      return (await import('samlify')) as unknown as SamlifyLike;
+      // 使用 new Function 绕过 TypeScript 对 CommonJS 的 import() 转换，
+      // 保证 samlify 作为可选依赖在运行时动态加载
+      return (await new Function(
+         'return import("samlify")',
+      )()) as unknown as SamlifyLike;
     } catch (error) {
       throw new Error(
         'samlify is required for SAML support. Please install it: npm install samlify',
@@ -166,7 +170,7 @@ export class SamlService {
     idp: SamlIdentityProviderConfig,
   ): SamlEntityLike {
     if (idp.metadata) {
-      return samlify.IdentityProvider({
+      return new samlify.IdentityProvider({
         metadata: idp.metadata,
       });
     }
