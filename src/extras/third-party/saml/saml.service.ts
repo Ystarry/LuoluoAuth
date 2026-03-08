@@ -142,6 +142,8 @@ export class SamlService {
          'return import("samlify")',
       )()) as unknown as SamlifyLike;
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load samlify:', error);
       throw new Error(
         'samlify is required for SAML support. Please install it: npm install samlify',
       );
