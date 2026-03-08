@@ -7,6 +7,9 @@ export { ThirdPartyAuthController } from './third-party-auth.controller';
 export { PassportBridgeModule } from './passport-bridge.module';
 export { PassportBridgeController } from './passport-bridge.controller';
 
+// SAML
+export { SamlAuthModule, SamlService, SamlController } from './saml';
+
 // 类型
 export type {
   OAuth2ProviderConfig,
@@ -17,6 +20,13 @@ export type {
   PassportInstance,
   PassportStrategyLike,
 } from './interfaces';
+
+export type {
+  SamlAuthModuleOptions,
+  SamlServiceProviderConfig,
+  SamlIdentityProviderConfig,
+  SamlLoginRequest,
+} from './saml/interfaces';
 
 // 内置 Provider 配置
 export {
