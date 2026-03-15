@@ -19,8 +19,8 @@ const options: SamlAuthModuleOptions = {
   identityProviders: [idpConfig],
   loginHandler: (userInfo) =>
     Promise.resolve({
-        userId: `saml_${userInfo.providerUserId}`,
-        roles: ['user'],
+      userId: `saml_${userInfo.providerUserId}`,
+      roles: ['user'],
     }),
 };
 
@@ -42,21 +42,21 @@ describe('SamlService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should throw for unknown idp', async () => {
-    await expect(service.createLoginRequest('unknown')).rejects.toThrow(
+  it('should throw for unknown idp', () => {
+    expect(() => service.createLoginRequest('unknown')).toThrow(
       'Unknown SAML Identity Provider: unknown',
     );
   });
 
-  it('should create redirect login request', async () => {
-    const request = await service.createLoginRequest('okta');
+  it('should create redirect login request', () => {
+    const request = service.createLoginRequest('okta');
     expect(request.redirectUrl).toBeDefined();
     expect(request.redirectUrl).toContain('okta.example.com');
     expect(request.redirectUrl).toContain('SAMLRequest=');
   });
 
-  it('should generate SP metadata', async () => {
-    const metadata = await service.getServiceProviderMetadata();
+  it('should generate SP metadata', () => {
+    const metadata = service.getServiceProviderMetadata();
     expect(metadata).toContain('EntityDescriptor');
     expect(metadata).toContain(spConfig.entityId);
     expect(metadata).toContain(spConfig.assertEndpoint);

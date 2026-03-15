@@ -108,7 +108,7 @@ export class SamlService {
   getServiceProviderMetadata(): string {
     const samlify = this.loadSamlify();
     const sp = this.buildServiceProvider(samlify);
-    return sp.getMetadata() as string;
+    return sp.getMetadata();
   }
 
   private getIdp(idpId: string): SamlIdentityProviderConfig {
@@ -122,7 +122,7 @@ export class SamlService {
   private loadSamlify(): SamlifyLike {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      return require('samlify');
+      return require('samlify') as SamlifyLike;
     } catch {
       throw new Error(
         'samlify is required for SAML support. Please install it: npm install samlify',
