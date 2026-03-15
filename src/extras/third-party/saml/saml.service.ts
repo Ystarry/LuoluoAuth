@@ -28,7 +28,7 @@ export class SamlService {
    * 创建向指定 IdP 的登录请求
    * @param idpId IdP 标识
    */
-  async createLoginRequest(idpId: string): Promise<SamlLoginRequest> {
+  createLoginRequest(idpId: string): SamlLoginRequest {
     const idp = this.getIdp(idpId);
     const samlify = this.loadSamlify();
     const sp = this.buildServiceProvider(samlify);
@@ -40,10 +40,7 @@ export class SamlService {
     const { context, entityEndpoint } = sp.createLoginRequest(
       idpInstance,
       binding,
-    ) as {
-      context: string;
-      entityEndpoint: string;
-    };
+    );
 
     if (idp.binding === 'post') {
       return {
@@ -75,23 +72,13 @@ export class SamlService {
     const sp = this.buildServiceProvider(samlify);
     const idpInstance = this.buildIdentityProvider(samlify, idp);
 
-    const parsed = (await sp.parseLoginResponse(
-      idpInstance,
-      'post',
-      {
-        body: {
-          SAMLResponse: samlResponse,
-          RelayState: relayState,
-        },
-        query: {},
-      } as unknown as Record<string, unknown>,
-    )) as {
-      extract: {
-        nameID?: string;
-        attributes?: Record<string, unknown>;
-        conditions?: Record<string, unknown>;
-      };
-    };
+    const parsed = await sp.parseLoginResponse(idpInstance, 'post', {
+      body: {
+        SAMLResponse: samlResponse,
+        RelayState: relayState,
+      },
+      query: {},
+    });
 
     const nameId = parsed.extract.nameID ?? '';
     const attrs = parsed.extract.attributes ?? {};
@@ -118,10 +105,10 @@ export class SamlService {
   /**
    * 生成 SP metadata XML
    */
-  async getServiceProviderMetadata(): Promise<string> {
+  getServiceProviderMetadata(): string {
     const samlify = this.loadSamlify();
     const sp = this.buildServiceProvider(samlify);
-    return sp.getMetadata();
+    return sp.getMetadata() as string;
   }
 
   private getIdp(idpId: string): SamlIdentityProviderConfig {
@@ -132,11 +119,11 @@ export class SamlService {
     return idp;
   }
 
-  private async loadSamlify(): Promise<SamlifyLike> {
+  private loadSamlify(): SamlifyLike {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      return require('samlify') as unknown as SamlifyLike;
-    } catch (error) {
+      return require('samlify');
+    } catch {
       throw new Error(
         'samlify is required for SAML support. Please install it: npm install samlify',
       );
@@ -169,6 +156,7 @@ export class SamlService {
         metadata: idp.metadata,
       });
     }
+
     const bindingUri =
       idp.binding === 'post'
         ? samlify.Constants.namespace.binding.post
@@ -235,6 +223,12 @@ interface SamlEntityLike {
     idp: SamlEntityLike,
     binding: string,
     request: Record<string, unknown>,
-  ): Promise<{ extract: { nameID?: string; attributes?: Record<string, unknown>; conditions?: Record<string, unknown> } }>;
+  ): Promise<{
+    extract: {
+      nameID?: string;
+      attributes?: Record<string, unknown>;
+      conditions?: Record<string, unknown>;
+    };
+  }>;
   getMetadata(): string;
 }

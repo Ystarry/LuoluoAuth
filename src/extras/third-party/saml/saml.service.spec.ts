@@ -17,10 +17,11 @@ const idpConfig: SamlAuthModuleOptions['identityProviders'][0] = {
 const options: SamlAuthModuleOptions = {
   serviceProvider: spConfig,
   identityProviders: [idpConfig],
-  loginHandler: async (userInfo) => ({
-    userId: `saml_${userInfo.providerUserId}`,
-    roles: ['user'],
-  }),
+  loginHandler: (userInfo) =>
+    Promise.resolve({
+        userId: `saml_${userInfo.providerUserId}`,
+        roles: ['user'],
+    }),
 };
 
 describe('SamlService', () => {

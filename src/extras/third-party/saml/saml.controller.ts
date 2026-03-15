@@ -32,10 +32,7 @@ export class SamlController {
    * redirect 绑定直接 302 跳转；post 绑定返回 HTML 自动提交表单
    */
   @Get(':idp/login')
-  async login(
-    @Param('idp') idp: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  login(@Param('idp') idp: string, @Res() res: Response): void {
     const request = await this.samlService.createLoginRequest(idp);
 
     if (request.redirectUrl) {
@@ -108,10 +105,10 @@ export class SamlController {
    * SP metadata 端点，供 IdP 配置使用
    */
   @Get('metadata')
-  async metadata(@Res() res: Response): Promise<void> {
-    const xml = await this.samlService.getServiceProviderMetadata();
-    res.setHeader('Content-Type', 'application/xml');
-    res.send(xml);
+  metadata(@Res() res: Response): void {
+      const xml = this.samlService.getServiceProviderMetadata();
+      res.setHeader('Content-Type', 'application/xml');
+      res.send(xml);
   }
 
   private escapeHtml(value: string): string {

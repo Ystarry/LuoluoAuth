@@ -23,8 +23,9 @@ describe('SamlAuthModule', () => {
               ssoLoginUrl: 'https://okta.example.com/app/saml/sso',
             },
           ],
-          loginHandler: async (userInfo) => ({
-            userId: `saml_${userInfo.providerUserId}`,
+          loginHandler: (userInfo) =>
+            Promise.resolve({
+              userId: `saml_${userInfo.providerUserId}`,
             roles: ['user'],
           }),
         }),
