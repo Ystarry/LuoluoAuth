@@ -34,6 +34,7 @@ export {
   createGitHubProvider,
   createWeChatProvider,
   createMicrosoftProvider,
+  createAppleProvider,
 } from './providers';
 
 export type {
@@ -41,4 +42,5 @@ export type {
   GitHubProviderOptions,
   WeChatProviderOptions,
   MicrosoftProviderOptions,
+  AppleProviderOptions,
 } from './providers';

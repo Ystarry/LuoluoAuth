@@ -1,10 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { randomBytes } from 'crypto';
-import type {
-  OAuth2ProviderConfig,
-  ThirdPartyUserInfo,
-  StateStore,
-} from './interfaces';
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import type { OAuth2ProviderConfig, ThirdPartyUserInfo } from './interfaces';
 
 /**
  * OAuth2 / OIDC 通用客户端服务
@@ -15,21 +11,18 @@ export class OAuth2ClientService {
   constructor(
     @Inject('THIRD_PARTY_PROVIDERS')
     private readonly providers: Map<string, OAuth2ProviderConfig>,
-    @Inject('THIRD_PARTY_STATE_STORE')
-    private readonly stateStore: StateStore,
+    @Inject('THIRD_PARTY_STATE_SECRET')
+    private readonly stateSecret: string,
   ) {}
 
   /**
    * 生成第三方登录授权 URL
    * @param providerId 提供商标识
-   * @returns 授权 URL 与 state key
+   * @returns 授权 URL
    */
-  async buildAuthorizationUrl(
-    providerId: string,
-  ): Promise<{ url: string; stateKey: string }> {
+  buildAuthorizationUrl(providerId: string): string {
     const provider = this.getProvider(providerId);
-    const state = this.generateState();
-    const stateKey = await this.stateStore.save(state, 600);
+    const state = this.signState(providerId);
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -40,8 +33,11 @@ export class OAuth2ClientService {
       ...(provider.extraAuthorizationParams || {}),
     });
 
-    const url = `${provider.authorizationEndpoint}?${params.toString()}`;
-    return { url, stateKey };
+    if (provider.responseMode) {
+      params.set('response_mode', provider.responseMode);
+    }
+
+    return `${provider.authorizationEndpoint}?${params.toString()}`;
   }
 
   /**
@@ -49,24 +45,30 @@ export class OAuth2ClientService {
    * @param providerId 提供商标识
    * @param code 授权码
    * @param state 回调带回的 state
-   * @param stateKey 登录时返回的 state key
+   * @param callbackBody form_post 回调体（如 Apple 登录）
    */
   async handleCallback(
     providerId: string,
     code: string,
     state: string,
-    stateKey: string,
+    callbackBody?: Record<string, unknown>,
   ): Promise<ThirdPartyUserInfo> {
-    const provider = this.getProvider(providerId);
-
-    if (provider.useState !== false) {
-      const valid = await this.stateStore.verify(stateKey, state);
-      if (!valid) {
-        throw new Error('Invalid or expired OAuth2 state');
-      }
+    const verifiedProviderId = this.verifyState(state);
+    if (!verifiedProviderId || verifiedProviderId !== providerId) {
+      throw new Error('Invalid or expired OAuth2 state');
     }
 
+    const provider = this.getProvider(providerId);
     const tokenResponse = await this.exchangeCode(provider, code);
+
+    // OIDC 模式：优先从 id_token 解析用户信息，无需 access_token
+    if (provider.idTokenExtractor && tokenResponse.id_token) {
+      const payload = this.parseJwt(tokenResponse.id_token as string);
+      const user = provider.idTokenExtractor(payload);
+      user.provider = provider.id;
+      return this.mergeCallbackBody(provider, user, callbackBody);
+    }
+
     const accessToken = provider.tokenExtractor
       ? provider.tokenExtractor(tokenResponse)
       : (tokenResponse.access_token as string);
@@ -82,9 +84,7 @@ export class OAuth2ClientService {
     }
 
     if (!provider.userInfoExtractor) {
-      throw new Error(
-        `Provider ${providerId} missing userInfoExtractor`,
-      );
+      throw new Error(`Provider ${providerId} missing userInfoExtractor`);
     }
 
     const userInfoResponse = await this.fetchUserInfo(
@@ -93,7 +93,7 @@ export class OAuth2ClientService {
     );
     const user = provider.userInfoExtractor(userInfoResponse);
     user.provider = provider.id;
-    return user;
+    return this.mergeCallbackBody(provider, user, callbackBody);
   }
 
   private getProvider(providerId: string): OAuth2ProviderConfig {
@@ -104,20 +104,46 @@ export class OAuth2ClientService {
     return provider;
   }
 
-  private generateState(): string {
-    return randomBytes(16).toString('hex');
+  private signState(providerId: string): string {
+    const nonce = randomBytes(16).toString('hex');
+    const payload = `${providerId}:${nonce}`;
+    const signature = createHmac('sha256', this.stateSecret)
+      .update(payload)
+      .digest('base64url');
+    return `${payload}:${signature}`;
+  }
+
+  private verifyState(state: string): string | null {
+    const parts = state.split(':');
+    if (parts.length !== 3) {
+      return null;
+    }
+    const [providerId, nonce, signature] = parts;
+    const payload = `${providerId}:${nonce}`;
+    const expected = createHmac('sha256', this.stateSecret)
+      .update(payload)
+      .digest('base64url');
+    const valid = timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expected),
+    );
+    return valid ? providerId : null;
   }
 
   private async exchangeCode(
     provider: OAuth2ProviderConfig,
     code: string,
   ): Promise<Record<string, unknown>> {
+    const clientSecret = provider.clientSecretGenerator
+      ? await provider.clientSecretGenerator()
+      : provider.clientSecret;
+
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
       redirect_uri: provider.redirectUri,
       client_id: provider.clientId,
-      client_secret: provider.clientSecret,
+      client_secret: clientSecret,
     });
 
     const response = await fetch(provider.tokenEndpoint, {
@@ -151,6 +177,22 @@ export class OAuth2ClientService {
     }
 
     return (await response.json()) as Record<string, unknown>;
+  }
+
+  private mergeCallbackBody(
+    provider: OAuth2ProviderConfig,
+    user: ThirdPartyUserInfo,
+    callbackBody?: Record<string, unknown>,
+  ): ThirdPartyUserInfo {
+    if (!provider.callbackBodyExtractor || !callbackBody) {
+      return user;
+    }
+    const extra = provider.callbackBodyExtractor(callbackBody);
+    return {
+      ...user,
+      ...extra,
+      raw: { ...user.raw, callbackBody: extra },
+    };
   }
 
   private parseJwt(token: string): Record<string, unknown> {

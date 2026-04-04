@@ -47,6 +47,21 @@ export interface OAuth2ProviderConfig {
   /** 额外授权参数 */
   extraAuthorizationParams?: Record<string, string>;
   /**
+   * OAuth2 响应模式
+   * Apple 登录必须使用 form_post
+    */
+  responseMode?: 'query' | 'fragment' | 'form_post';
+  /**
+   * 动态生成 client_secret（如 Apple 需使用 JWT）
+   */
+  clientSecretGenerator?: () => Promise<string>;
+  /**
+   * 从 form_post 回调体中提取用户信息（如 Apple 首次登录返回 name）
+    */
+  callbackBodyExtractor?: (
+      body: Record<string, unknown>,
+  ) => Partial<ThirdPartyUserInfo>;
+  /**
    * 将 token 端点响应归一化为 accessToken
    * 默认取 response.access_token
    */

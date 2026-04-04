@@ -17,3 +17,8 @@ export {
   createMicrosoftProvider,
   type MicrosoftProviderOptions,
 } from './microsoft.provider';
+
+export {
+  createAppleProvider,
+  type AppleProviderOptions,
+} from './apple.provider';

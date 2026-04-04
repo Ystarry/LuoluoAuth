@@ -1,8 +1,10 @@
 import {
   Controller,
   Get,
+  Post,
   Param,
   Query,
+  Body,
   Req,
   Res,
   Inject,
@@ -17,6 +19,7 @@ import type { ThirdPartyLoginHandler } from './interfaces';
  * 第三方登录控制器
  * 提供 /auth/third-party/:provider/login 重定向
  * 与 /auth/third-party/:provider/callback 回调处理
+ * 支持 GET (query) 与 POST (form_post，如 Apple) 两种回调方式
  */
 @Controller('auth/third-party')
 export class ThirdPartyAuthController {
@@ -24,27 +27,23 @@ export class ThirdPartyAuthController {
     private readonly oauth2Client: OAuth2ClientService,
     private readonly authService: AuthService,
     @Inject('THIRD_PARTY_LOGIN_HANDLER')
-    private readonly loginHandler: ThirdPartyLoginHandler
+    private readonly loginHandler: ThirdPartyLoginHandler,
   ) {}
 
   /**
    * 跳转至第三方授权页
    */
   @Get(':provider/login')
-  async login(
-    @Param('provider') provider: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  login(@Param('provider') provider: string, @Res() res: Response): void {
     const url = this.oauth2Client.buildAuthorizationUrl(provider);
     res.redirect(url);
   }
 
   /**
-   * 第三方授权回调
-   * 换取用户信息后，调用业务方 loginHandler 获取本地用户，再执行 luoluo-auth 登录
+   * 第三方授权回调（GET / query 模式）
    */
   @Get(':provider/callback')
-  async callback(
+  async callbackGet(
     @Param('provider') provider: string,
     @Query('code') code: string,
     @Query('state') state: string,
@@ -52,6 +51,54 @@ export class ThirdPartyAuthController {
     @Query('error_description') errorDescription: string,
     @Req() req: Request,
     @Res() res: Response,
+  ): Promise<void> {
+    await this.handleCallback(
+      provider,
+      code,
+      state,
+      error,
+      errorDescription,
+      req,
+      res,
+      undefined,
+    );
+  }
+
+  /**
+   * 第三方授权回调（POST / form_post 模式，如 Apple）
+   */
+  @Post(':provider/callback')
+  async callbackPost(
+    @Param('provider') provider: string,
+    @Body('code') code: string,
+    @Body('state') state: string,
+    @Body('error') error: string,
+    @Body('error_description') errorDescription: string,
+    @Body() body: Record<string, unknown>,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.handleCallback(
+      provider,
+      code,
+      state,
+      error,
+      errorDescription,
+      req,
+      res,
+      body,
+    );
+  }
+
+  private async handleCallback(
+    provider: string,
+    code: string,
+    state: string,
+    error: string,
+    errorDescription: string,
+    req: Request,
+    res: Response,
+    body?: Record<string, unknown>,
   ): Promise<void> {
     if (error) {
       throw new BadRequestException(
@@ -67,6 +114,7 @@ export class ThirdPartyAuthController {
       provider,
       code,
       state,
+      body,
     );
     const localUser = await this.loginHandler(userInfo, req, res);
 
