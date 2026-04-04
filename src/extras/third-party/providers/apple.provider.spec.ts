@@ -1,11 +1,11 @@
 import { createAppleProvider } from './apple.provider';
 import { verify } from 'jsonwebtoken';
 
-const applePrivateKey = `-----BEGIN EC PRIVATE KEY-----
-MHQCAQEEIBXDRNGLLGkDi2WfKhfsAJ3FSKgb0/BI1Q9LM8rxN9ohoAcGBSuBBAAK
-oUQDQgAEX5nA4q7PF1VV2AaDE3i9d2Kbb1W0rQYh6KX3gRQ8tlAqW3f9y2RqNF1+
-X0qjA2XGotXt9Sf3n3K0pT9xXm0FkQ==
------END EC PRIVATE KEY-----`;
+const applePrivateKey = `-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgskFVYhMHmzNw+sWm
+oLKOxjiNe7BHHu3UWxbxWJDrfaOhRANCAAQZVov5ZSGg7JBPTeOtch9jx/jl+qAD
+Mk+uEJYAAWCrQBcrWF5/lifLI9GxsEWCDUaHpZPM1f7yjmhmDzAJfaGT
+-----END PRIVATE KEY-----`;
 
 describe('createAppleProvider', () => {
   it('should create Apple provider config with form_post response mode', () => {
@@ -23,9 +23,7 @@ describe('createAppleProvider', () => {
     expect(provider.authorizationEndpoint).toBe(
       'https://appleid.apple.com/auth/authorize',
     );
-    expect(provider.tokenEndpoint).toBe(
-      'https://appleid.apple.com/auth/token',
-    );
+    expect(provider.tokenEndpoint).toBe('https://appleid.apple.com/auth/token');
   });
 
   it('should generate a valid client_secret JWT', async () => {
