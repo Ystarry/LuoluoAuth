@@ -1,5 +1,5 @@
 import { sign } from 'jsonwebtoken';
-import type { OAuth2ProviderConfig, ThirdPartyUserInfo } from '../interfaces';
+import type { OAuth2ProviderConfig } from '../interfaces';
 
 export interface AppleProviderOptions {
   /** Apple Services ID */
