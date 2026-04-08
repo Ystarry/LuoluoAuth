@@ -59,7 +59,9 @@ export class OAuth2ClientService {
     }
 
     const provider = this.getProvider(providerId);
-    const tokenResponse = await this.exchangeCode(provider, code);
+    const tokenResponse = provider.exchangeCode
+      ? await provider.exchangeCode(provider, code)
+      : await this.exchangeCode(provider, code);
 
     // OIDC 模式：优先从 id_token 解析用户信息，无需 access_token
     if (provider.idTokenExtractor && tokenResponse.id_token) {
@@ -87,10 +89,10 @@ export class OAuth2ClientService {
       throw new Error(`Provider ${providerId} missing userInfoExtractor`);
     }
 
-    const userInfoResponse = await this.fetchUserInfo(
-      provider.userInfoEndpoint,
-      accessToken,
-    );
+    const userInfoResponse = provider.fetchUserInfo
+      ? await provider.fetchUserInfo(provider, accessToken, code)
+      : await this.fetchUserInfo(provider.userInfoEndpoint, accessToken);
+
     const user = provider.userInfoExtractor(userInfoResponse);
     user.provider = provider.id;
     return this.mergeCallbackBody(provider, user, callbackBody);

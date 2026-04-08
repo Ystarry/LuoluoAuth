@@ -62,6 +62,23 @@ export interface OAuth2ProviderConfig {
       body: Record<string, unknown>,
   ) => Partial<ThirdPartyUserInfo>;
   /**
+     * 自定义 code 换取 token 的过程
+     * 适用于钉钉、飞书等需要 JSON body 或非标准端点的场景
+     */
+    exchangeCode?: (
+      provider: OAuth2ProviderConfig,
+      code: string,
+    ) => Promise<Record<string, unknown>>;
+    /**
+     * 自定义拉取用户信息
+     * 适用于企业微信等需要先换 userid 再换详情的多步流程
+     */
+    fetchUserInfo?: (
+      provider: OAuth2ProviderConfig,
+      accessToken: string,
+      code?: string,
+    ) => Promise<Record<string, unknown>>;
+  /**
    * 将 token 端点响应归一化为 accessToken
    * 默认取 response.access_token
    */
