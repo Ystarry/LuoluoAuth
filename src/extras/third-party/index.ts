@@ -35,6 +35,9 @@ export {
   createWeChatProvider,
   createMicrosoftProvider,
   createAppleProvider,
+  createWeComProvider,
+  createDingTalkProvider,
+  createFeishuProvider,
 } from './providers';
 
 export type {
@@ -43,4 +46,7 @@ export type {
   WeChatProviderOptions,
   MicrosoftProviderOptions,
   AppleProviderOptions,
+  WeComProviderOptions,
+  DingTalkProviderOptions,
+  FeishuProviderOptions,
 } from './providers';

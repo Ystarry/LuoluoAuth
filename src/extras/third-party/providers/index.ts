@@ -22,3 +22,19 @@ export {
   createAppleProvider,
   type AppleProviderOptions,
 } from './apple.provider';
+
+
+export {
+  createWeComProvider,
+  type WeComProviderOptions,
+} from './wecom.provider';
+
+export {
+  createDingTalkProvider,
+  type DingTalkProviderOptions,
+} from './dingtalk.provider';
+
+export {
+  createFeishuProvider,
+  type FeishuProviderOptions,
+} from './feishu.provider';
