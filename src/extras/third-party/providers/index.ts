@@ -38,3 +38,8 @@ export {
   createFeishuProvider,
   type FeishuProviderOptions,
 } from './feishu.provider';
+
+export {
+  createQqProvider,
+  type QqProviderOptions,
+} from './qq.provider';

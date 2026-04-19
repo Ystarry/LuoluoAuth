@@ -38,6 +38,7 @@ export {
   createWeComProvider,
   createDingTalkProvider,
   createFeishuProvider,
+  createQqProvider,
 } from './providers';
 
 export type {
@@ -49,4 +50,5 @@ export type {
   WeComProviderOptions,
   DingTalkProviderOptions,
   FeishuProviderOptions,
+  QqProviderOptions,
 } from './providers';
