@@ -72,7 +72,7 @@ export type {
 export { BcryptPasswordEncoder, Argon2PasswordEncoder } from './auth/password';
 export type { PasswordEncoder } from './auth/password';
 
-// ==================== Extras ====================
+// ==================== Extras 可选模块 ==================== //
 
 // SSO 模块
 export { SsoModule } from './extras/sso/sso.module';
@@ -179,3 +179,48 @@ export type {
   SignatureConfig,
   SignaturePayload,
 } from './auth/signature/signature.util';
+
+// ==================== Third-Party Auth (Optional) ====================
+
+export {
+  ThirdPartyAuthModule,
+  OAuth2ClientService,
+  ThirdPartyAuthController,
+  PassportBridgeModule,
+  PassportBridgeController,
+  SamlAuthModule,
+  SamlService,
+  SamlController,
+  createGoogleProvider,
+  createGitHubProvider,
+  createWeChatProvider,
+  createMicrosoftProvider,
+  createAppleProvider,
+  createWeComProvider,
+  createDingTalkProvider,
+  createFeishuProvider,
+  createQqProvider,
+} from './extras/third-party';
+
+export type {
+  OAuth2ProviderConfig,
+  ThirdPartyUserInfo,
+  ThirdPartyLoginHandler,
+  ThirdPartyAuthModuleOptions,
+  PassportBridgeOptions,
+  PassportInstance,
+  PassportStrategyLike,
+  GoogleProviderOptions,
+  GitHubProviderOptions,
+  WeChatProviderOptions,
+  MicrosoftProviderOptions,
+  AppleProviderOptions,
+  WeComProviderOptions,
+  DingTalkProviderOptions,
+  FeishuProviderOptions,
+  QqProviderOptions,
+  SamlAuthModuleOptions,
+  SamlServiceProviderConfig,
+  SamlIdentityProviderConfig,
+  SamlLoginRequest,
+} from './extras/third-party';

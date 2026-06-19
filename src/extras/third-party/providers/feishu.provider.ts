@@ -27,11 +27,9 @@ export function createFeishuProvider(
   return {
     id: 'feishu',
     name: 'Feishu',
-    authorizationEndpoint:
-      'https://open.feishu.cn/open-apis/authen/v1/index',
+    authorizationEndpoint: 'https://open.feishu.cn/open-apis/authen/v1/index',
     tokenEndpoint,
-    userInfoEndpoint:
-      'https://open.feishu.cn/open-apis/authen/v1/user_info',
+    userInfoEndpoint: 'https://open.feishu.cn/open-apis/authen/v1/user_info',
     clientId: options.clientId,
     clientSecret: options.clientSecret,
     redirectUri: options.redirectUri,

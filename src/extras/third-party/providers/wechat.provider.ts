@@ -24,7 +24,10 @@ export function createWeChatProvider(
     clientSecret: options.clientSecret,
     redirectUri: options.redirectUri,
     scopes: options.scopes ?? ['snsapi_login'],
-    extraAuthorizationParams: { response_type: 'code', appid: options.clientId },
+    extraAuthorizationParams: {
+      response_type: 'code',
+      appid: options.clientId,
+    },
     tokenExtractor: (response) => String(response.access_token),
     userInfoExtractor: (response) => ({
       provider: 'wechat',

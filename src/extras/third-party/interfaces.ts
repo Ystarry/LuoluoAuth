@@ -49,40 +49,40 @@ export interface OAuth2ProviderConfig {
   /**
    * OAuth2 响应模式
    * Apple 登录必须使用 form_post
-    */
+   */
   responseMode?: 'query' | 'fragment' | 'form_post';
+  /**
+   * 将 token 端点响应归一化为 accessToken
+   * 默认取 response.access_token
+   */
+  tokenExtractor?: (response: Record<string, unknown>) => string;
   /**
    * 动态生成 client_secret（如 Apple 需使用 JWT）
    */
   clientSecretGenerator?: () => Promise<string>;
   /**
    * 从 form_post 回调体中提取用户信息（如 Apple 首次登录返回 name）
-    */
+   */
   callbackBodyExtractor?: (
-      body: Record<string, unknown>,
+    body: Record<string, unknown>,
   ) => Partial<ThirdPartyUserInfo>;
   /**
-     * 自定义 code 换取 token 的过程
-     * 适用于钉钉、飞书等需要 JSON body 或非标准端点的场景
-     */
-    exchangeCode?: (
-      provider: OAuth2ProviderConfig,
-      code: string,
-    ) => Promise<Record<string, unknown>>;
-    /**
-     * 自定义拉取用户信息
-     * 适用于企业微信等需要先换 userid 再换详情的多步流程
-     */
-    fetchUserInfo?: (
-      provider: OAuth2ProviderConfig,
-      accessToken: string,
-      code?: string,
-    ) => Promise<Record<string, unknown>>;
-  /**
-   * 将 token 端点响应归一化为 accessToken
-   * 默认取 response.access_token
+   * 自定义 code 换取 token 的过程
+   * 适用于钉钉、飞书等需要 JSON body 或非标准端点的场景
    */
-  tokenExtractor?: (response: Record<string, unknown>) => string;
+  exchangeCode?: (
+    provider: OAuth2ProviderConfig,
+    code: string,
+  ) => Promise<Record<string, unknown>>;
+  /**
+   * 自定义拉取用户信息
+   * 适用于企业微信等需要先换 userid 再换详情的多步流程
+   */
+  fetchUserInfo?: (
+    provider: OAuth2ProviderConfig,
+    accessToken: string,
+    code?: string,
+  ) => Promise<Record<string, unknown>>;
   /**
    * 使用 accessToken 获取并归一化用户信息
    * OIDC 模式下若提供 idTokenExtractor，可省略
@@ -106,17 +106,6 @@ export interface ThirdPartyLoginHandler {
 }
 
 /**
- * OAuth2 state 临时存储
- * 用于校验回调时的 state 参数，防止 CSRF
- */
-// export interface StateStore {
-//   /** 保存 state，返回保存的 key */
-//   save(state: string, ttlSeconds: number): Promise<string>;
-//   /** 校验并消费 state，返回是否有效 */
-//   verify(key: string, state: string): Promise<boolean>;
-// }
-
-/**
  * 第三方认证模块配置
  */
 export interface ThirdPartyAuthModuleOptions {
@@ -136,6 +125,7 @@ export interface ThirdPartyAuthModuleOptions {
 
 /**
  * Passport Bridge 配置
+ * 需要业务方自行安装 passport 与对应 strategy 包
  */
 export interface PassportBridgeOptions {
   /** Passport 实例（通常即 import * as passport from 'passport'） */
@@ -154,11 +144,7 @@ export interface PassportInstance {
   authenticate(
     name: string,
     options?: Record<string, unknown>,
-    callback?: (
-      err: Error | null,
-      user?: unknown,
-      info?: unknown,
-    ) => unknown,
+    callback?: (err: Error | null, user?: unknown, info?: unknown) => unknown,
   ): (req: unknown, res: unknown, next: unknown) => void;
 }
 

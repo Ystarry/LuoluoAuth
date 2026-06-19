@@ -92,7 +92,6 @@ export class OAuth2ClientService {
     const userInfoResponse = provider.fetchUserInfo
       ? await provider.fetchUserInfo(provider, accessToken, code)
       : await this.fetchUserInfo(provider.userInfoEndpoint, accessToken);
-
     const user = provider.userInfoExtractor(userInfoResponse);
     user.provider = provider.id;
     return this.mergeCallbackBody(provider, user, callbackBody);

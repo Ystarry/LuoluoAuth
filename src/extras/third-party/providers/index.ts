@@ -23,7 +23,6 @@ export {
   type AppleProviderOptions,
 } from './apple.provider';
 
-
 export {
   createWeComProvider,
   type WeComProviderOptions,
@@ -39,7 +38,4 @@ export {
   type FeishuProviderOptions,
 } from './feishu.provider';
 
-export {
-  createQqProvider,
-  type QqProviderOptions,
-} from './qq.provider';
+export { createQqProvider, type QqProviderOptions } from './qq.provider';

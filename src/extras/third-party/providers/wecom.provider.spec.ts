@@ -1,102 +1,86 @@
-import type { OAuth2ProviderConfig } from '../interfaces';
+import { createWeComProvider } from './wecom.provider';
 
-export interface WeComProviderOptions {
-  /** 企业微信 CorpID */
-  clientId: string;
-  /** 企业微信应用的 CorpSecret */
-  clientSecret: string;
-  /** 应用 AgentID */
-  agentId: string;
-  /** 回调地址 */
-  redirectUri: string;
-  /** 请求 scope，企业微信扫码登录固定 snsapi_base */
-  scopes?: string[];
-}
-
-/**
- * 企业微信 Provider 配置
- * 适用于企业自建应用 / 内部应用扫码登录
- */
-export function createWeComProvider(
-  options: WeComProviderOptions,
-): OAuth2ProviderConfig {
-  return {
-    id: 'wecom',
-    name: 'WeCom',
-    authorizationEndpoint:
-      'https://open.work.weixin.qq.com/wwopen/sso/qrConnect',
-    tokenEndpoint: 'https://qyapi.weixin.qq.com/cgi-bin/gettoken',
-    userInfoEndpoint: 'https://qyapi.weixin.qq.com/cgi-bin/user/get',
-    clientId: options.clientId,
-    clientSecret: options.clientSecret,
-    redirectUri: options.redirectUri,
-    scopes: options.scopes ?? ['snsapi_base'],
-    extraAuthorizationParams: {
-      agentid: options.agentId,
-      response_type: 'code',
-    },
-    tokenExtractor: (response) => String(response.access_token),
-    exchangeCode: async (provider) => {
-      // 企业微信的 access_token 是企业级，与当前登录用户无关
-      const url = new URL(provider.tokenEndpoint);
-      url.searchParams.set('corpid', provider.clientId);
-      url.searchParams.set('corpsecret', provider.clientSecret);
-
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(
-          `WeCom token exchange failed: ${response.status} ${text}`,
-        );
-      }
-      return (await response.json()) as Record<string, unknown>;
-    },
-    fetchUserInfo: async (provider, accessToken, code) => {
-      // 1. 用 code 换取 userid
-      const userIdUrl = new URL(
-        'https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo',
-      );
-      userIdUrl.searchParams.set('access_token', accessToken);
-      userIdUrl.searchParams.set('code', code ?? '');
-
-      const userIdResponse = await fetch(userIdUrl.toString());
-      if (!userIdResponse.ok) {
-        const text = await userIdResponse.text();
-        throw new Error(
-          `WeCom getuserinfo failed: ${userIdResponse.status} ${text}`,
-        );
-      }
-      const userIdData = (await userIdResponse.json()) as Record<
-        string,
-        unknown
-      >;
-      const userId = userIdData.UserId ?? userIdData.userid;
-      if (typeof userId !== 'string' || !userId) {
-        throw new Error('WeCom failed to obtain user id');
-      }
-
-      // 2. 用 userid 换取用户详情
-      const detailUrl = new URL(provider.userInfoEndpoint!);
-      detailUrl.searchParams.set('access_token', accessToken);
-      detailUrl.searchParams.set('userid', userId);
-
-      const detailResponse = await fetch(detailUrl.toString());
-      if (!detailResponse.ok) {
-        const text = await detailResponse.text();
-        throw new Error(
-          `WeCom user detail failed: ${detailResponse.status} ${text}`,
-        );
-      }
-      return (await detailResponse.json()) as Record<string, unknown>;
-    },
-    userInfoExtractor: (response) => ({
-      provider: 'wecom',
-      providerUserId: String(response.userid),
-      email: response.email as string,
-      username: response.name as string,
-      phone: response.mobile as string,
-      avatar: response.avatar as string,
-      raw: response,
-    }),
+describe('createWeComProvider', () => {
+  const options = {
+    clientId: 'corp-id',
+    clientSecret: 'corp-secret',
+    agentId: '1000002',
+    redirectUri: 'https://app.example.com/auth/third-party/wecom/callback',
   };
-}
+
+  it('should create WeCom provider config', () => {
+    const provider = createWeComProvider(options);
+
+    expect(provider.id).toBe('wecom');
+    expect(provider.name).toBe('WeCom');
+    expect(provider.authorizationEndpoint).toBe(
+      'https://open.work.weixin.qq.com/wwopen/sso/qrConnect',
+    );
+    expect(provider.tokenEndpoint).toBe(
+      'https://qyapi.weixin.qq.com/cgi-bin/gettoken',
+    );
+    expect(provider.extraAuthorizationParams?.agentid).toBe('1000002');
+  });
+
+  it('should exchange code for corp access_token', async () => {
+    const provider = createWeComProvider(options);
+
+    jest.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          access_token: 'corp-access-token',
+          expires_in: 7200,
+        }),
+    } as Response);
+
+    const tokenResponse = await provider.exchangeCode!(provider, 'auth-code');
+    expect(tokenResponse.access_token).toBe('corp-access-token');
+  });
+
+  it('should fetch user info through userid', async () => {
+    const provider = createWeComProvider(options);
+
+    jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ UserId: 'ZhangSan' }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            userid: 'ZhangSan',
+            name: '张三',
+            email: 'zhangsan@example.com',
+            mobile: '13800138000',
+            avatar: 'https://example.com/avatar.png',
+          }),
+      } as Response);
+
+    const userInfo = await provider.fetchUserInfo!(
+      provider,
+      'corp-access-token',
+      'auth-code',
+    );
+    expect(userInfo.userid).toBe('ZhangSan');
+    expect(userInfo.name).toBe('张三');
+  });
+
+  it('should extract normalized user info', () => {
+    const provider = createWeComProvider(options);
+    const user = provider.userInfoExtractor!({
+      userid: 'ZhangSan',
+      name: '张三',
+      email: 'zhangsan@example.com',
+      mobile: '13800138000',
+      avatar: 'https://example.com/avatar.png',
+    });
+
+    expect(user.provider).toBe('wecom');
+    expect(user.providerUserId).toBe('ZhangSan');
+    expect(user.username).toBe('张三');
+    expect(user.email).toBe('zhangsan@example.com');
+  });
+});

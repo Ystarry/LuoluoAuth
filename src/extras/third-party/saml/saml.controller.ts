@@ -33,7 +33,7 @@ export class SamlController {
    */
   @Get(':idp/login')
   login(@Param('idp') idp: string, @Res() res: Response): void {
-    const request = await this.samlService.createLoginRequest(idp);
+    const request = this.samlService.createLoginRequest(idp);
 
     if (request.redirectUrl) {
       res.redirect(request.redirectUrl);
@@ -106,9 +106,9 @@ export class SamlController {
    */
   @Get('metadata')
   metadata(@Res() res: Response): void {
-      const xml = this.samlService.getServiceProviderMetadata();
-      res.setHeader('Content-Type', 'application/xml');
-      res.send(xml);
+    const xml = this.samlService.getServiceProviderMetadata();
+    res.setHeader('Content-Type', 'application/xml');
+    res.send(xml);
   }
 
   private escapeHtml(value: string): string {

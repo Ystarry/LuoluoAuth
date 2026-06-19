@@ -54,12 +54,12 @@ export function createAppleProvider(
         return {};
       }
       const parsed =
-       typeof user === 'string'
+        typeof user === 'string'
           ? (JSON.parse(user) as Record<string, unknown>)
           : (user as Record<string, unknown>);
-       const nameObj = parsed.name as
-           | { firstName?: string; lastName?: string }
-           | undefined;
+      const nameObj = parsed.name as
+        | { firstName?: string; lastName?: string }
+        | undefined;
       const firstName = nameObj?.firstName ?? '';
       const lastName = nameObj?.lastName ?? '';
       const fullName = `${firstName} ${lastName}`.trim();

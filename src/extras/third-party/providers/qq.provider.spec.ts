@@ -15,9 +15,7 @@ describe('createQqProvider', () => {
     expect(provider.authorizationEndpoint).toBe(
       'https://graph.qq.com/oauth2.0/authorize',
     );
-    expect(provider.tokenEndpoint).toBe(
-      'https://graph.qq.com/oauth2.0/token',
-    );
+    expect(provider.tokenEndpoint).toBe('https://graph.qq.com/oauth2.0/token');
     expect(provider.scopes).toEqual(['get_user_info']);
   });
 
@@ -45,7 +43,9 @@ describe('createQqProvider', () => {
       .mockResolvedValueOnce({
         ok: true,
         text: () =>
-          Promise.resolve('callback({"client_id":"qq-app-id","openid":"qq-openid-123"});'),
+          Promise.resolve(
+            'callback({"client_id":"qq-app-id","openid":"qq-openid-123"});',
+          ),
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
@@ -59,10 +59,7 @@ describe('createQqProvider', () => {
           }),
       } as Response);
 
-    const userInfo = await provider.fetchUserInfo!(
-      provider,
-      'qq-access-token',
-    );
+    const userInfo = await provider.fetchUserInfo!(provider, 'qq-access-token');
     expect(userInfo.openid).toBe('qq-openid-123');
     expect(userInfo.nickname).toBe('QQ用户');
     expect(userInfo.figureurl_qq_2).toBe('http://example.com/avatar-2.png');

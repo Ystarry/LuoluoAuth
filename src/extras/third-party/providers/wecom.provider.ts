@@ -45,7 +45,9 @@ export function createWeComProvider(
       const response = await fetch(url.toString());
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(`WeCom token exchange failed: ${response.status} ${text}`);
+        throw new Error(
+          `WeCom token exchange failed: ${response.status} ${text}`,
+        );
       }
       return (await response.json()) as Record<string, unknown>;
     },
@@ -60,23 +62,30 @@ export function createWeComProvider(
       const userIdResponse = await fetch(userIdUrl.toString());
       if (!userIdResponse.ok) {
         const text = await userIdResponse.text();
-        throw new Error(`WeCom getuserinfo failed: ${userIdResponse.status} ${text}`);
+        throw new Error(
+          `WeCom getuserinfo failed: ${userIdResponse.status} ${text}`,
+        );
       }
-      const userIdData = (await userIdResponse.json()) as Record<string, unknown>;
+      const userIdData = (await userIdResponse.json()) as Record<
+        string,
+        unknown
+      >;
       const userId = userIdData.UserId ?? userIdData.userid;
-      if (!userId) {
+      if (typeof userId !== 'string' || !userId) {
         throw new Error('WeCom failed to obtain user id');
       }
 
       // 2. 用 userid 换取用户详情
       const detailUrl = new URL(provider.userInfoEndpoint!);
       detailUrl.searchParams.set('access_token', accessToken);
-      detailUrl.searchParams.set('userid', String(userId));
+      detailUrl.searchParams.set('userid', userId);
 
       const detailResponse = await fetch(detailUrl.toString());
       if (!detailResponse.ok) {
         const text = await detailResponse.text();
-        throw new Error(`WeCom user detail failed: ${detailResponse.status} ${text}`);
+        throw new Error(
+          `WeCom user detail failed: ${detailResponse.status} ${text}`,
+        );
       }
       return (await detailResponse.json()) as Record<string, unknown>;
     },

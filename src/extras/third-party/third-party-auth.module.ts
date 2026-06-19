@@ -37,7 +37,7 @@ export class ThirdPartyAuthModule {
         {
           provide: 'THIRD_PARTY_LOGIN_HANDLER',
           useValue: options.loginHandler,
-        }
+        },
       ],
       exports: [OAuth2ClientService],
     };

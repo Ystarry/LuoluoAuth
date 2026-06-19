@@ -15,7 +15,9 @@ export interface QqProviderOptions {
  * QQ 互联 OAuth2 Provider 配置
  * QQ token 端点返回 URL-encoded 字符串，并需要额外请求 openid
  */
-export function createQqProvider(options: QqProviderOptions): OAuth2ProviderConfig {
+export function createQqProvider(
+  options: QqProviderOptions,
+): OAuth2ProviderConfig {
   return {
     id: 'qq',
     name: 'QQ',
@@ -60,7 +62,9 @@ export function createQqProvider(options: QqProviderOptions): OAuth2ProviderConf
       const openidResponse = await fetch(openidUrl.toString());
       if (!openidResponse.ok) {
         const text = await openidResponse.text();
-        throw new Error(`QQ openid fetch failed: ${openidResponse.status} ${text}`);
+        throw new Error(
+          `QQ openid fetch failed: ${openidResponse.status} ${text}`,
+        );
       }
       const openidText = await openidResponse.text();
       const openidData = parseJsonp(openidText);
@@ -78,9 +82,14 @@ export function createQqProvider(options: QqProviderOptions): OAuth2ProviderConf
       const userInfoResponse = await fetch(userInfoUrl.toString());
       if (!userInfoResponse.ok) {
         const text = await userInfoResponse.text();
-        throw new Error(`QQ user info fetch failed: ${userInfoResponse.status} ${text}`);
+        throw new Error(
+          `QQ user info fetch failed: ${userInfoResponse.status} ${text}`,
+        );
       }
-      const userInfo = (await userInfoResponse.json()) as Record<string, unknown>;
+      const userInfo = (await userInfoResponse.json()) as Record<
+        string,
+        unknown
+      >;
       return {
         ...userInfo,
         openid,

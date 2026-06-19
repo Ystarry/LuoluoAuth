@@ -26,8 +26,8 @@ describe('SamlAuthModule', () => {
           loginHandler: (userInfo) =>
             Promise.resolve({
               userId: `saml_${userInfo.providerUserId}`,
-            roles: ['user'],
-          }),
+              roles: ['user'],
+            }),
         }),
       ],
     }).compile();
