@@ -32,6 +32,11 @@ luoluo-auth 是一款专为 NestJS 生态设计的企业级认证授权框架，
 npm install luoluo-auth ioredis jsonwebtoken @nestjs/config @nestjs/microservices @grpc/grpc-js
 ```
 
+## 项目架构
+
+![项目架构图](doc/项目架构图.png)
+
+
 ## 项目结构
 
 ```

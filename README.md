@@ -32,6 +32,10 @@ Luoluo-auth is an enterprise-level authentication authorization framework specia
 npm install luoluo-auth ioredis jsonwebtoken @nestjs/config @nestjs/microservices @grpc/grpc-js
 ```
 
+## Architecture
+
+![Architecture Diagram](doc/项目架构图.png)
+
 ## Project Structure
 
 ```
