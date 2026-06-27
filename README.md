@@ -34,7 +34,7 @@ npm install luoluo-auth ioredis jsonwebtoken @nestjs/config @nestjs/microservice
 
 ## Architecture
 
-![Architecture Diagram](doc/项目架构图.png)
+![Architecture Diagram](docs/项目架构图.png)
 
 ## Project Structure
 
