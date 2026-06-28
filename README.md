@@ -48,7 +48,8 @@ src/
 │   ├── auth.config.ts             # Default config and AuthFrameworkConfig types
 │   ├── auth.filter.ts             # Unified authentication exception filter
 │   ├── strategies/                # Token strategies
-│   │   └── jwt.strategy.ts        # JWT signing and verification
+│   │   ├── jwt.strategy.ts        # JWT signing and verification
+│   │   └── random-token.strategy.ts # UUID-v7 / ULID / random string token strategy
 │   ├── stores/                    # Session store implementations
 │   │   ├── memory-store.ts        # In-memory LRU session store
 │   │   └── redis-store.ts         # Redis session store (Set index + zombie cleanup)
@@ -56,26 +57,58 @@ src/
 │   │   └── permission.engine.ts   # RBAC with wildcard matching
 │   ├── signature/                 # API signature authentication
 │   │   ├── signature.util.ts      # HMAC-SHA256 signature generation/verification
-│   │   └── signature.guard.ts     # Signature auth guard
+│   │   ├── signature.guard.ts     # Signature auth guard
+│   │   └── nonce-store.ts         # Nonce deduplication (Redis / in-memory LRU fallback)
 │   ├── audit/                     # Audit logging
 │   │   └── audit.service.ts       # console / file / redis audit backends
+│   ├── cookie/                    # Cookie mode
+│   │   └── cookie.service.ts      # Cookie read/write and auto-refresh
+│   ├── rate-limit/                # Login rate limiting
+│   │   ├── memory-rate-limiter.ts # In-memory sliding-window / token-bucket
+│   │   └── redis-rate-limiter.ts  # Redis distributed rate limiter
+│   ├── distributed-lock/          # Distributed locks
+│   │   ├── memory-distributed-lock.ts
+│   │   └── redis-distributed-lock.ts
+│   ├── persistence/               # Data persistence layer
+│   │   ├── persistence.adapter.ts # Abstract persistence interface
+│   │   ├── persistence.factory.ts # Adapter factory
+│   │   ├── persistence.module.ts  # Dynamic module registration
+│   │   └── adapters/              # Concrete storage adapters
+│   │       ├── sql-persistence.adapter.ts
+│   │       ├── mongodb-persistence.adapter.ts
+│   │       └── memory-persistence.adapter.ts
+│   ├── password/                  # Password encoding
+│   │   └── password-encoder.ts    # BCrypt / Argon2 wrapper
+│   ├── ws/                        # WebSocket authentication
+│   │   └── ws-auth.guard.ts       # Socket.IO / native WS token auth
+│   ├── i18n/                      # Internationalization
+│   │   └── i18n.service.ts        # Chinese / English error-code i18n
+│   ├── errors/                    # Exception hierarchy
+│   │   ├── auth-error-code.ts
+│   │   └── auth.exception.ts
 │   ├── interfaces/                # Core interfaces
 │   │   ├── session-store.interface.ts
-│   │   └── token-strategy.interface.ts
+│   │   ├── token-strategy.interface.ts
+│   │   └── rate-limit.interface.ts
 │   └── utils/                     # Utilities
 │       └── token.util.ts          # Bearer token extraction
 ├── extras/                        # Optional extensions
-│   ├── oauth2/                    # OAuth2 authorization server
+│   ├── oauth2/                    # OAuth2 / OIDC authorization server
 │   │   ├── client-store.ts        # OAuth2ClientStore interface + InMemoryOAuth2ClientStore
 │   │   ├── redis-client-store.ts  # Redis-backed OAuth2 store (refresh token rotation)
 │   │   ├── oauth2.controller.ts   # /oauth/authorize, /token, /userinfo endpoints
+│   │   ├── oidc.controller.ts     # /.well-known/openid-configuration and ID Token
 │   │   └── oauth2.module.ts       # OAuth2 dynamic module registration
 │   ├── sso/                       # SSO single sign-on
 │   │   ├── sso.service.ts
 │   │   └── sso.module.ts
-│   └── microservice/              # Microservice authentication
-│       ├── auth.interceptor.ts
-│       └── microservice.module.ts
+│   ├── microservice/              # Microservice authentication
+│   │   ├── auth.interceptor.ts    # RPC token propagation interceptor
+│   │   └── microservice.module.ts
+│   ├── passport/                  # Passport adapter
+│   │   └── passport.strategy.ts   # Passport-style verification adapter
+│   └── admin/                     # Admin management API
+│       └── admin.controller.ts    # Session / user / client management
 ├── index.ts                       # Public export barrel
 ├── app.module.ts                  # Sample root module
 ├── app.controller.ts
@@ -525,7 +558,7 @@ npm run test:cov
 
 Coverage thresholds are configured in `package.json` to prevent regression.
 
-Current coverage: 28 unit test suites / 288 test cases plus 3 E2E suites / 14 cases, covering permission engine, auth service, memory/Redis session stores, OAuth2/OIDC, signature auth, nonce deduplication, rate limiting, device fingerprint, distributed lock, Cookie mode, Remember Me, multi-account switching, password encoding, WebSocket auth, data persistence layer, and end-to-end authentication flows.
+Current coverage: 33 unit test suites / 401 test cases plus 3 E2E suites / 14 cases, covering permission engine, auth service, memory/Redis session stores, OAuth2/OIDC, signature auth, nonce deduplication, rate limiting, device fingerprint, distributed lock, Cookie mode, Remember Me, multi-account switching, password encoding, WebSocket auth, data persistence layer, Passport adapter, Admin management API, module registration tests, and end-to-end authentication flows.
 
 ## API Documentation
 

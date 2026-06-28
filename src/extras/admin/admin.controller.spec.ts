@@ -3,7 +3,6 @@ import { AdminController } from './admin.controller';
 import { AuthService } from '../../auth/auth.service';
 import { AuthErrorCode } from '../../auth/errors/auth-error-code';
 import { AuthException } from '../../auth/errors/auth.exception';
-import { CookieService } from '../../auth/cookie/cookie.service';
 
 describe('AdminController', () => {
   let controller: AdminController;
@@ -27,10 +26,7 @@ describe('AdminController', () => {
           permissions: ['user:read'],
         });
       }
-      throw new AuthException(
-        AuthErrorCode.TOKEN_INVALID,
-        'Invalid token',
-      );
+      throw new AuthException(AuthErrorCode.TOKEN_INVALID, 'Invalid token');
     }),
     kickUser: jest.fn().mockResolvedValue(undefined),
     banUser: jest.fn().mockResolvedValue(undefined),
@@ -39,9 +35,9 @@ describe('AdminController', () => {
   } as unknown as jest.Mocked<AuthService>;
 
   const mockSessionStore = {
-    listByUserId: jest.fn().mockResolvedValue([
-      { userId: 'user-1', device: 'web' },
-    ]),
+    listByUserId: jest
+      .fn()
+      .mockResolvedValue([{ userId: 'user-1', device: 'web' }]),
   };
 
   const mockClientStore = {
@@ -61,7 +57,6 @@ describe('AdminController', () => {
   };
 
   const mockAuthConfig = {
-    randomToken: undefined,
     cookie: { enabled: false },
     fingerprint: { enabled: true },
     multiAccount: { enabled: false },
@@ -92,7 +87,6 @@ describe('AdminController', () => {
         { provide: 'SESSION_STORE', useValue: mockSessionStore },
         { provide: 'OAUTH2_CLIENT_STORE', useValue: mockClientStore },
         { provide: 'AUTH_CONFIG', useValue: mockAuthConfig },
-        { provide: CookieService, useValue: undefined },
       ],
     }).compile();
 
@@ -243,7 +237,6 @@ describe('AdminController', () => {
       const req = createRequest({ auth: `Bearer ${validAdminToken}` });
       const result = await controller.getConfig(req);
       expect(result).toEqual({
-        tokenStrategy: 'jwt',
         cookieMode: false,
         fingerprintEnabled: true,
         multiAccountEnabled: false,
@@ -283,7 +276,6 @@ describe('AdminController', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: 'AUTH_CONFIG', useValue: mockAuthConfig },
-          { provide: CookieService, useValue: undefined },
         ],
       }).compile();
 
@@ -301,7 +293,6 @@ describe('AdminController', () => {
         providers: [
           { provide: AuthService, useValue: mockAuthService },
           { provide: 'AUTH_CONFIG', useValue: mockAuthConfig },
-          { provide: CookieService, useValue: undefined },
         ],
       }).compile();
 

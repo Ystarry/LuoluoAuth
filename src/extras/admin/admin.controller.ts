@@ -14,9 +14,12 @@ import {
 import type { Request } from 'express';
 import { AuthService } from '../../auth/auth.service';
 import { extractBearerToken } from '../../auth/utils/token.util';
-import { CookieService } from '../../auth/cookie/cookie.service';
+import type { CookieService } from '../../auth/cookie/cookie.service';
 import type { AuthFrameworkConfig } from '../../auth/auth.config';
-import type { SessionStore, SessionData } from '../../auth/interfaces/session-store.interface';
+import type {
+  SessionStore,
+  SessionData,
+} from '../../auth/interfaces/session-store.interface';
 import type { OAuth2ClientStore, OAuth2Client } from '../oauth2/client-store';
 
 /**
@@ -41,7 +44,7 @@ export class AdminController {
     @Inject('OAUTH2_CLIENT_STORE')
     private readonly oauth2ClientStore?: OAuth2ClientStore,
     @Optional()
-    @Inject(CookieService)
+    @Inject('COOKIE_SERVICE')
     private readonly cookieService?: CookieService,
     @Optional()
     @Inject('AUTH_CONFIG')
@@ -90,15 +93,13 @@ export class AdminController {
   ): Promise<Record<string, unknown>> {
     await this.requireAdmin(req);
 
-    if (!this.sessionStore) {
+    const store = this.sessionStore;
+    if (!store?.listByUserId) {
       throw new BadRequestException('Session store not configured');
     }
 
     if (userId) {
-      if (!this.sessionStore.listByUserId) {
-        throw new BadRequestException('Session store does not support listByUserId');
-      }
-      const sessions = await this.sessionStore.listByUserId(userId);
+      const sessions = await store.listByUserId(userId);
       return { userId, sessions, count: sessions.length };
     }
 
@@ -141,6 +142,8 @@ export class AdminController {
       throw new BadRequestException('userId is required');
     }
 
+    const request = req as unknown as { res?: object };
+
     if (action === 'unban') {
       await this.authService.unbanUser(userId);
       return { success: true, userId, action: 'unbanned' };
@@ -175,7 +178,8 @@ export class AdminController {
   async registerClient(@Req() req: Request): Promise<Record<string, unknown>> {
     await this.requireAdmin(req);
 
-    if (!this.oauth2ClientStore) {
+    const clientStore = this.oauth2ClientStore;
+    if (!clientStore) {
       throw new BadRequestException('OAuth2 client store not configured');
     }
 
@@ -202,7 +206,7 @@ export class AdminController {
       isPublic: body.isPublic,
     };
 
-    await this.oauth2ClientStore.registerClient(client);
+    await clientStore.registerClient(client);
     return {
       success: true,
       client: { clientId: client.clientId, name: client.name },
@@ -224,16 +228,17 @@ export class AdminController {
       throw new BadRequestException('clientId is required');
     }
 
-    if (!this.oauth2ClientStore) {
+    const store = this.oauth2ClientStore;
+    if (!store) {
       throw new BadRequestException('OAuth2 client store not configured');
     }
 
-    const client = await this.oauth2ClientStore.getClient(clientId);
+    const client = await store.getClient(clientId);
     if (!client) {
       throw new NotFoundException('Client not found');
     }
 
-    await this.oauth2ClientStore.removeToken(clientId);
+    await store.removeToken(clientId);
     return { success: true, clientId };
   }
 
@@ -252,10 +257,7 @@ export class AdminController {
       throw new BadRequestException('token is required');
     }
 
-    await this.authService.logout(
-      token,
-      req.res,
-    );
+    await this.authService.logout(token, req.res);
 
     return { success: true };
   }
@@ -269,7 +271,6 @@ export class AdminController {
     await this.requireAdmin(req);
 
     return {
-      tokenStrategy: this.authConfig?.randomToken ? 'random' : 'jwt',
       cookieMode: this.authConfig?.cookie?.enabled || false,
       fingerprintEnabled: this.authConfig?.fingerprint?.enabled || false,
       multiAccountEnabled: this.authConfig?.multiAccount?.enabled || false,

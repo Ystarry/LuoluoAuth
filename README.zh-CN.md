@@ -31,7 +31,6 @@ luoluo-auth 是一款专为 NestJS 生态设计的企业级认证授权框架，
 ```bash
 npm install luoluo-auth ioredis jsonwebtoken @nestjs/config @nestjs/microservices @grpc/grpc-js
 ```
-
 ## 项目架构
 
 ![项目架构图](docs/项目架构图.png)
@@ -49,7 +48,8 @@ src/
 │   ├── auth.config.ts             # 默认配置与 AuthFrameworkConfig 类型
 │   ├── auth.filter.ts             # 认证异常统一过滤器
 │   ├── strategies/                # Token 策略
-│   │   └── jwt.strategy.ts        # JWT 签发与校验实现
+│   │   ├── jwt.strategy.ts        # JWT 签发与校验实现
+│   │   └── random-token.strategy.ts # UUID-v7 / ULID / 随机字符串 Token 策略
 │   ├── stores/                    # Session 存储实现
 │   │   ├── memory-store.ts        # 内存 LRU 会话存储
 │   │   └── redis-store.ts         # Redis 会话存储（Set 索引 + 僵尸索引清理）
@@ -57,30 +57,60 @@ src/
 │   │   └── permission.engine.ts   # RBAC 角色权限与通配符匹配
 │   ├── signature/                 # API 签名认证
 │   │   ├── signature.util.ts      # HMAC-SHA256 签名生成与校验
-│   │   └── signature.guard.ts     # 签名认证守卫
+│   │   ├── signature.guard.ts     # 签名认证守卫
+│   │   └── nonce-store.ts         # Nonce 去重存储（Redis / 内存 LRU 回退）
 │   ├── audit/                     # 审计日志
 │   │   └── audit.service.ts       # console / file / redis 三后端审计
+│   ├── cookie/                    # Cookie 模式
+│   │   └── cookie.service.ts      # Cookie 读写与自动刷新
+│   ├── rate-limit/                # 登录限流
+│   │   ├── memory-rate-limiter.ts # 内存滑动窗口 / 令牌桶实现
+│   │   └── redis-rate-limiter.ts  # Redis 分布式限流实现
+│   ├── distributed-lock/          # 分布式锁
+│   │   ├── memory-distributed-lock.ts
+│   │   └── redis-distributed-lock.ts
+│   ├── persistence/               # 数据持久化层
+│   │   ├── persistence.adapter.ts # 抽象持久化接口
+│   │   ├── persistence.factory.ts # 适配器工厂
+│   │   ├── persistence.module.ts  # 动态模块注册
+│   │   └── adapters/              # 具体存储适配器
+│   │       ├── sql-persistence.adapter.ts
+│   │       ├── mongodb-persistence.adapter.ts
+│   │       └── memory-persistence.adapter.ts
+│   ├── password/                  # 密码加密
+│   │   └── password-encoder.ts    # BCrypt / Argon2 封装
+│   ├── ws/                        # WebSocket 认证
+│   │   └── ws-auth.guard.ts       # Socket.IO / 原生 WS Token 认证
+│   ├── i18n/                      # 国际化
+│   │   └── i18n.service.ts        # 中/英错误码国际化
+│   ├── errors/                    # 异常体系
+│   │   ├── auth-error-code.ts
+│   │   └── auth.exception.ts
 │   ├── interfaces/                # 核心接口定义
 │   │   ├── session-store.interface.ts
-│   │   └── token-strategy.interface.ts
+│   │   ├── token-strategy.interface.ts
+│   │   └── rate-limit.interface.ts
 │   └── utils/                     # 工具函数
 │       └── token.util.ts          # Bearer Token 提取
 ├── extras/                        # 可选扩展能力
-│   ├── oauth2/                    # OAuth2 授权服务器
+│   ├── oauth2/                    # OAuth2 / OIDC 授权服务器
 │   │   ├── client-store.ts        # OAuth2ClientStore 接口 + InMemoryOAuth2ClientStore
 │   │   ├── redis-client-store.ts  # Redis 版 OAuth2 存储（支持 refresh token rotation）
 │   │   ├── oauth2.controller.ts   # /oauth/authorize /token /userinfo 端点
+│   │   ├── oidc.controller.ts     # /.well-known/openid-configuration 与 ID Token
 │   │   └── oauth2.module.ts       # OAuth2 模块动态注册
 │   ├── sso/                       # SSO 单点登录
 │   │   ├── sso.service.ts
 │   │   └── sso.module.ts
-│   └── microservice/              # 微服务鉴权
-│       ├── auth.interceptor.ts
-│       └── microservice.module.ts
+│   ├── microservice/              # 微服务鉴权
+│   │   ├── auth.interceptor.ts    # RPC Token 透传拦截器
+│   │   └── microservice.module.ts
+│   ├── passport/                  # Passport 适配器
+│   │   └── passport.strategy.ts   # Passport 风格验证适配器
+│   └── admin/                     # Admin 管理接口
+│       └── admin.controller.ts    # 会话/用户/客户端管理
 ├── index.ts                       # 统一导出入口
 ├── app.module.ts                  # 示例根模块
-├── app.controller.ts
-├── app.service.ts
 └── main.ts                        # 示例启动入口
 ```
 
@@ -526,7 +556,7 @@ npm run test:cov
 
 覆盖率阈值已在 `package.json` 中配置，用于防止回归。
 
-当前测试覆盖：28 个单元测试套件 / 288 个测试用例，外加 3 个 E2E 套件 / 14 个用例，涵盖权限引擎、认证服务、内存/Redis 会话存储、OAuth2/OIDC、签名认证、Nonce 去重、限流、设备指纹、分布式锁、Cookie 模式、Remember Me、多账号切换、密码加密、WebSocket 认证、数据持久化层以及端到端认证流程。
+当前测试覆盖：33 个单元测试套件 / 401 个测试用例，外加 3 个 E2E 套件 / 14 个用例，涵盖权限引擎、认证服务、内存/Redis 会话存储、OAuth2/OIDC、签名认证、Nonce 去重、限流、设备指纹、分布式锁、Cookie 模式、Remember Me、多账号切换、密码加密、WebSocket 认证、数据持久化层、Passport 适配器、Admin 管理接口、模块级注册测试以及端到端认证流程。
 
 ## API 文档
 
