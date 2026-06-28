@@ -1,6 +1,6 @@
 {
   "name": "luoluo-auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A NestJS authentication framework inspired by Java Sa-Token. Supports JWT, Redis, RBAC, SSO, OAuth2, microservice auth, and API signature verification.",
   "license": "MIT",
   "author": {
