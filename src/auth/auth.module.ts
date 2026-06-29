@@ -185,7 +185,7 @@ export class AuthModule {
           }
           return new JwtStrategy(
             opts.jwt || {
-              secret: 'default-secret',
+              secret: DEFAULT_JWT_SECRET,
             },
           );
         },
@@ -356,7 +356,7 @@ export class AuthModule {
             }
             return new JwtStrategy(
               opts.jwt || {
-                secret: 'default-secret',
+                secret: DEFAULT_JWT_SECRET,
               },
             );
           },
@@ -552,7 +552,7 @@ export class AuthModule {
           }
           return new JwtStrategy(
             options.jwt || {
-              secret: 'default-secret',
+              secret: DEFAULT_JWT_SECRET,
             },
           );
         },
