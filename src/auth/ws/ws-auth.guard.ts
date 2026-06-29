@@ -53,7 +53,8 @@ export class WsAuthGuard implements CanActivate {
 
   /**
    * 从 WebSocket 客户端中提取 Token
-   * 支持优先级：Socket.IO auth.token > query.token > headers.authorization > Cookie
+   * 支持优先级：Socket.IO auth.token > headers.authorization > Cookie > query.token
+   * 注意：query.token 会被代理/服务器日志记录，仅作为最后的降级方案
    */
   private extractToken(client: unknown): string | undefined {
     const handshake = this.getObject(client, 'handshake');
@@ -66,6 +67,24 @@ export class WsAuthGuard implements CanActivate {
         return authToken;
       }
 
+      const authHeader = this.getStringFromObject(
+        this.getObject(handshake, 'headers'),
+        'authorization',
+      );
+      const headerToken = extractBearerToken(authHeader);
+      if (headerToken) {
+        return headerToken;
+      }
+
+      const cookieHeader = this.getStringFromObject(
+        this.getObject(handshake, 'headers'),
+        'cookie',
+      );
+      if (cookieHeader && this.cookieService?.isEnabled()) {
+        return this.readCookie(cookieHeader);
+      }
+
+      // query token 作为最后降级，存在日志泄露风险
       const queryToken = this.getStringFromObject(
         this.getObject(handshake, 'query'),
         'token',
@@ -73,33 +92,10 @@ export class WsAuthGuard implements CanActivate {
       if (queryToken) {
         return queryToken;
       }
-
-      const authHeader = this.getStringFromObject(
-        this.getObject(handshake, 'headers'),
-        'authorization',
-      );
-      const headerToken = extractBearerToken(authHeader);
-      if (headerToken) {
-        return headerToken;
-      }
-
-      const cookieHeader = this.getStringFromObject(
-        this.getObject(handshake, 'headers'),
-        'cookie',
-      );
-      if (cookieHeader && this.cookieService?.isEnabled()) {
-        return this.readCookie(cookieHeader);
-      }
     }
 
     const upgradeReq = this.getObject(client, 'upgradeReq');
     if (upgradeReq) {
-      const url = this.getStringFromObject(upgradeReq, 'url');
-      const urlToken = this.extractTokenFromUrl(url);
-      if (urlToken) {
-        return urlToken;
-      }
-
       const authHeader = this.getStringFromObject(
         this.getObject(upgradeReq, 'headers'),
         'authorization',
@@ -116,6 +112,10 @@ export class WsAuthGuard implements CanActivate {
       if (cookieHeader && this.cookieService?.isEnabled()) {
         return this.readCookie(cookieHeader);
       }
+
+      // query token 作为最后降级
+      const url = this.getStringFromObject(upgradeReq, 'url');
+      return this.extractTokenFromUrl(url);
     }
 
     return undefined;

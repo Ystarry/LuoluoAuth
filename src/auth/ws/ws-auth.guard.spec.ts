@@ -64,7 +64,7 @@ describe('WsAuthGuard', () => {
     );
   });
 
-  it('should authenticate Socket.IO client via query.token', async () => {
+  it('should fallback to query.token when auth.token and headers are absent', async () => {
     const client = {
       handshake: {
         query: { token: 'query-token' },
@@ -77,6 +77,25 @@ describe('WsAuthGuard', () => {
 
     expect(validateToken).toHaveBeenCalledWith(
       'query-token',
+      '127.0.0.1',
+      undefined,
+    );
+  });
+
+  it('should prefer auth.token over query.token', async () => {
+    const client = {
+      handshake: {
+        auth: { token: 'auth-token' },
+        query: { token: 'query-token' },
+        headers: {},
+        address: '127.0.0.1',
+      },
+    };
+
+    await guard.canActivate(createContext(client));
+
+    expect(validateToken).toHaveBeenCalledWith(
+      'auth-token',
       '127.0.0.1',
       undefined,
     );
