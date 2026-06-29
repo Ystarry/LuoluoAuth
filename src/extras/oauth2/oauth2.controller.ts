@@ -11,7 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
+import { randomInt, randomUUID } from 'crypto';
 import { verifyCodeVerifier } from './pkce.util';
 import { AuthService } from '../../auth/auth.service';
 import { extractBearerToken } from '../../auth/utils/token.util';
@@ -838,12 +838,13 @@ export class OAuth2Controller {
 
   /**
    * 生成 8 位易读 user_code（大写字母 + 数字）
+   * 使用 CSPRNG 避免可预测性
    */
   private generateUserCode(): string {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
     for (let i = 0; i < 8; i++) {
-      code += chars[Math.floor(Math.random() * chars.length)];
+      code += chars[randomInt(0, chars.length)];
     }
     return code;
   }
