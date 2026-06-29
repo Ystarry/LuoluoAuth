@@ -68,6 +68,20 @@ export interface SsoCallbackQuery {
 }
 
 /**
+ * SSO 重定向表单数据
+ * 用于将 Token 通过 POST body 安全传递给 SSO 登录页，避免暴露在 URL 中
+ */
+export interface SsoRedirectFormData {
+  /** 登录页 URL */
+  url: string;
+  /** 提交表单所需的数据 */
+  fields: {
+    redirect_uri: string;
+    token: string;
+  };
+}
+
+/**
  * SSO 用户信息
  */
 export interface SsoUserInfo {
@@ -99,17 +113,37 @@ export class SsoService {
   ) {}
 
   /**
-   * 构建 SSO 重定向 URL
-   * 将用户重定向到 SSO 登录页，登录成功后携带 Token 跳转回客户端应用
+   * 构建 SSO 重定向表单数据
+   * 将 Token 通过 POST body 安全传递给 SSO 登录页，避免暴露在 URL query 中
    * @param clientAppUrl - 客户端应用回调地址
    * @param token - 当前用户的认证 Token
-   * @returns 完整的重定向 URL
+   * @returns 登录页 URL 及需要提交的表单数据
+   */
+  buildRedirectFormData(
+    clientAppUrl: string,
+    token: string,
+  ): SsoRedirectFormData {
+    const loginUrl = this.config.loginUrl || '/auth/login';
+
+    return {
+      url: loginUrl,
+      fields: {
+        redirect_uri: clientAppUrl,
+        token,
+      },
+    };
+  }
+
+  /**
+   * 构建 SSO 重定向 URL（已弃用）
+   * 该方法会将 Token 暴露在 URL query 中，存在泄露风险。
+   * 请改用 buildRedirectFormData() 并通过 POST body 传递 Token。
+   * @deprecated Use buildRedirectFormData instead.
    */
   buildRedirectUrl(clientAppUrl: string, token: string): string {
     const loginUrl = this.config.loginUrl || '/auth/login';
     const tokenParamName = this.config.tokenParamName || 'token';
 
-    // 构建回调地址，SSO 登录成功后跳转回客户端
     const url = new URL(loginUrl, 'http://localhost');
     url.searchParams.set('redirect_uri', clientAppUrl);
     url.searchParams.set(tokenParamName, token);

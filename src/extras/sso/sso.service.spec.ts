@@ -35,8 +35,23 @@ describe('SsoService', () => {
     jest.clearAllMocks();
   });
 
+  describe('buildRedirectFormData', () => {
+    it('should build SSO redirect form data without exposing token in URL', () => {
+      const result = service.buildRedirectFormData(
+        'http://client.example.com/callback',
+        'access-token',
+      );
+
+      expect(result.url).toBe('http://sso.example.com/login');
+      expect(result.fields.redirect_uri).toBe(
+        'http://client.example.com/callback',
+      );
+      expect(result.fields.token).toBe('access-token');
+    });
+  });
+
   describe('buildRedirectUrl', () => {
-    it('should build SSO redirect URL with token', () => {
+    it('should build SSO redirect URL with token (deprecated)', () => {
       const url = service.buildRedirectUrl(
         'http://client.example.com/callback',
         'access-token',
