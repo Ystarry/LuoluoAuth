@@ -8,8 +8,6 @@ import { AuthExceptionFilter } from './auth.filter';
 import { AuthException } from './errors/auth.exception';
 import { AuthErrorCode } from './errors/auth-error-code';
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 describe('AuthExceptionFilter', () => {
   let filter: AuthExceptionFilter;
 

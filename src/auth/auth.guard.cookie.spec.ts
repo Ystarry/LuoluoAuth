@@ -8,8 +8,6 @@ import { CookieService } from './cookie/cookie.service';
 import { PermissionEngine } from './permission/permission.engine';
 import { AUTH_METADATA_KEY } from './auth.decorator';
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 describe('AuthGuard Cookie mode', () => {
   let guard: AuthGuard;
   let authService: AuthService;

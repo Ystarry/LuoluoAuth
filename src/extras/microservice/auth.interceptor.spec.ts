@@ -9,8 +9,6 @@ import {
 } from './auth.interceptor';
 import { AuthService } from '../../auth/auth.service';
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 describe('MicroserviceAuthInterceptor', () => {
   let interceptor: MicroserviceAuthInterceptor;
   const mockAuthService = {

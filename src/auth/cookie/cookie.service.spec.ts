@@ -1,8 +1,6 @@
 import type { Request, Response } from 'express';
 import { CookieService } from './cookie.service';
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 describe('CookieService', () => {
   const createMockResponse = (): Response => {
     return {

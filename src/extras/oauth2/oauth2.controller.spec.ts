@@ -8,8 +8,6 @@ import { generateCodeChallenge, generateCodeVerifier } from './pkce.util';
 import { OidcService } from './oidc.service';
 import { OidcController } from './oidc.controller';
 
-/* eslint-disable @typescript-eslint/unbound-method */
-
 describe('OAuth2Controller', () => {
   let controller: OAuth2Controller;
   let store: InMemoryOAuth2ClientStore;

@@ -142,8 +142,6 @@ export class AdminController {
       throw new BadRequestException('userId is required');
     }
 
-    const request = req as unknown as { res?: object };
-
     if (action === 'unban') {
       await this.authService.unbanUser(userId);
       return { success: true, userId, action: 'unbanned' };
