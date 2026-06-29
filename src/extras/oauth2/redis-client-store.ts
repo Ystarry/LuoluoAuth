@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 import type {
   AuthorizationCode,
   ConsumeRefreshTokenResult,
@@ -87,6 +87,7 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
 
   /**
    * 验证客户端密钥
+   * 使用 timingSafeEqual 防止时序攻击
    * @param clientId - 客户端 ID
    * @param clientSecret - 客户端密钥
    * @returns 是否验证通过
@@ -96,7 +97,15 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
     clientSecret: string,
   ): Promise<boolean> {
     const client = await this.getClient(clientId);
-    return client !== undefined && client.clientSecret === clientSecret;
+    if (!client || !client.clientSecret) {
+      return false;
+    }
+    const expected = Buffer.from(client.clientSecret, 'utf8');
+    const actual = Buffer.from(clientSecret, 'utf8');
+    if (expected.length !== actual.length) {
+      return false;
+    }
+    return timingSafeEqual(expected, actual);
   }
 
   /**

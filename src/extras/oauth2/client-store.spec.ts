@@ -40,6 +40,17 @@ describe('OAuth2ClientStore', () => {
       expect(store.verifyClientSecret('app-2', 'secret-2')).toBe(true);
       expect(store.verifyClientSecret('app-2', 'wrong')).toBe(false);
     });
+
+    it('should reject unknown client or empty secret', () => {
+      expect(store.verifyClientSecret('unknown', 'secret')).toBe(false);
+      store.registerClient({
+        clientId: 'app-no-secret',
+        clientSecret: '',
+        redirectUris: [],
+        grants: [],
+      });
+      expect(store.verifyClientSecret('app-no-secret', '')).toBe(false);
+    });
   });
 
   describe('verifyRedirectUri', () => {

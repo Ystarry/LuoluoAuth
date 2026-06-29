@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 
 /**
  * OAuth2 授权类型
@@ -229,13 +229,22 @@ export class InMemoryOAuth2ClientStore implements OAuth2ClientStore {
 
   /**
    * 验证客户端密钥
+   * 使用 timingSafeEqual 防止时序攻击
    * @param clientId - 客户端 ID
    * @param clientSecret - 客户端密钥
    * @returns 是否验证通过
    */
   verifyClientSecret(clientId: string, clientSecret: string): boolean {
     const client = this.clients.get(clientId);
-    return client !== undefined && client.clientSecret === clientSecret;
+    if (!client || !client.clientSecret) {
+      return false;
+    }
+    const expected = Buffer.from(client.clientSecret, 'utf8');
+    const actual = Buffer.from(clientSecret, 'utf8');
+    if (expected.length !== actual.length) {
+      return false;
+    }
+    return timingSafeEqual(expected, actual);
   }
 
   /**
