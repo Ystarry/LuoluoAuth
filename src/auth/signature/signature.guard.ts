@@ -73,12 +73,14 @@ export class SignatureGuard implements CanActivate {
 
     // 校验 nonce 防重放（使用 NonceStore，无 Redis 时由内存 LRU 兜底）
     if (this.nonceStore) {
-      const exists = await this.nonceStore.has(nonce);
-      if (exists) {
+      // 使用 setIfAbsent 原子判重并记录，避免并发请求在 has/set 间隙绕过校验
+      const added = await this.nonceStore.setIfAbsent(
+        nonce,
+        this.timestampTolerance,
+      );
+      if (!added) {
         throw new ForbiddenException('Duplicate nonce detected');
       }
-      // 记录 nonce，过期时间与时间戳容忍度一致
-      await this.nonceStore.set(nonce, this.timestampTolerance);
     }
 
     // 构建签名参数

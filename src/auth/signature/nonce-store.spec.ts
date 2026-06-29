@@ -88,4 +88,34 @@ describe('RedisNonceStore', () => {
       5000,
     );
   });
+
+  it('should return true when setIfAbsent succeeds', async () => {
+    mockRedis.set.mockResolvedValue('OK');
+    expect(await store.setIfAbsent('nonce-1', 5000)).toBe(true);
+    expect(mockRedis.set).toHaveBeenCalledWith(
+      'auth:nonce:nonce-1',
+      '1',
+      'PX',
+      5000,
+      'NX',
+    );
+  });
+
+  it('should return false when nonce already exists', async () => {
+    mockRedis.set.mockResolvedValue(null);
+    expect(await store.setIfAbsent('nonce-1', 5000)).toBe(false);
+  });
+});
+
+describe('MemoryNonceStore setIfAbsent', () => {
+  let store: MemoryNonceStore;
+
+  beforeEach(() => {
+    store = new MemoryNonceStore();
+  });
+
+  it('should return true for new nonce and false for duplicate', async () => {
+    expect(await store.setIfAbsent('nonce-1', 1000)).toBe(true);
+    expect(await store.setIfAbsent('nonce-1', 1000)).toBe(false);
+  });
 });

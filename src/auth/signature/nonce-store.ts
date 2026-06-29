@@ -18,6 +18,14 @@ export interface NonceStore {
    * @param ttlMs - 过期时间（毫秒）
    */
   set(nonce: string, ttlMs: number): Promise<void>;
+
+  /**
+   * 原子地记录 nonce：仅当 nonce 不存在时才写入
+   * @param nonce - 随机字符串
+   * @param ttlMs - 过期时间（毫秒）
+   * @returns true 表示写入成功（nonce 此前不存在），false 表示 nonce 已存在
+   */
+  setIfAbsent(nonce: string, ttlMs: number): Promise<boolean>;
 }
 
 /**
@@ -78,6 +86,29 @@ export class MemoryNonceStore implements NonceStore {
   }
 
   /**
+   * 原子地记录 nonce（内存实现使用 Map 单线程语义）
+   * @param nonce - 随机字符串
+   * @param ttlMs - 过期时间（毫秒）
+   * @returns true 表示写入成功，false 表示 nonce 已存在
+   */
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async setIfAbsent(nonce: string, ttlMs: number): Promise<boolean> {
+    this.evictExpired();
+
+    if (this.records.has(nonce)) {
+      return false;
+    }
+
+    if (this.records.size >= this.maxSize) {
+      const firstKey = this.records.keys().next().value as string;
+      this.records.delete(firstKey);
+    }
+
+    this.records.set(nonce, Date.now() + ttlMs);
+    return true;
+  }
+
+  /**
    * 清理已过期条目
    */
   private evictExpired(): void {
@@ -124,5 +155,22 @@ export class RedisNonceStore implements NonceStore {
    */
   async set(nonce: string, ttlMs: number): Promise<void> {
     await this.redis.set(`${this.prefix}:${nonce}`, '1', 'PX', ttlMs);
+  }
+
+  /**
+   * 原子地记录 nonce：仅当 key 不存在时才写入（SET ... PX NX）
+   * @param nonce - 随机字符串
+   * @param ttlMs - 过期时间（毫秒）
+   * @returns true 表示写入成功，false 表示 nonce 已存在
+   */
+  async setIfAbsent(nonce: string, ttlMs: number): Promise<boolean> {
+    const result = await this.redis.set(
+      `${this.prefix}:${nonce}`,
+      '1',
+      'PX',
+      ttlMs,
+      'NX',
+    );
+    return result === 'OK';
   }
 }
