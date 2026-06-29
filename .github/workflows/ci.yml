@@ -64,7 +64,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Run unit tests
-        run: pnpm test -- --ci --coverage
+        run: pnpm test --ci --coverage
 
       - name: Run E2E tests
         run: pnpm run test:e2e
