@@ -543,6 +543,127 @@ const defaultConfig = {
 | `@RequireSafeAuth()`                             | Requires secondary authentication            |
 | `@RequireSignature()`                            | Requires API signature verification          |
 
+## Third-Party Login
+
+Third-party login is provided as an optional module using a three-layer architecture: **protocol layer + built-in providers + Passport bridge**.
+
+- **Protocol Layer**: `OAuth2ClientService` handles the OAuth2 / OIDC authorization-code flow uniformly, with extension points for standard responses, form_post (Apple), custom code exchange, and custom user-info fetching.
+- **Built-in Providers**: Cover high-frequency C-end and domestic B-end scenarios out of the box.
+- **SAML Protocol Layer**: `SamlService` (based on `samlify`) provides enterprise SSO login requests, ACS callback handling, and SP metadata generation.
+- **Passport Strategy Bridge**: Reuses existing Passport.js strategies for long-tail providers.
+
+### Built-in Providers
+
+| Provider | Factory | Notes |
+| --- | --- | --- |
+| Google | `createGoogleProvider` | OIDC with id_token parsing |
+| Microsoft / Entra ID | `createMicrosoftProvider` | OIDC with multi-tenant support |
+| GitHub | `createGitHubProvider` | OAuth2 with profile fetch |
+| Apple | `createAppleProvider` | form_post callback, dynamic ES256 client_secret, first-login name extraction |
+| WeChat (web QR login) | `createWeChatProvider` | WeChat Open Platform OAuth2 |
+| WeCom | `createWeComProvider` | Self-built/internal app QR login: code → userid → detail |
+| DingTalk | `createDingTalkProvider` | DingTalk QR / internal app login |
+| Feishu | `createFeishuProvider` | Enterprise self-built / marketplace app login |
+| QQ | `createQqProvider` | QQ Connect, handles URL-encoded token and JSONP openid |
+
+### Quick Start
+
+```typescript
+import { Module } from '@nestjs/common';
+import {
+  ThirdPartyAuthModule,
+  createGoogleProvider,
+  createWeComProvider,
+} from 'luoluo-auth';
+
+@Module({
+  imports: [
+    ThirdPartyAuthModule.register({
+      stateSecret: 'your-state-secret',
+      providers: [
+        createGoogleProvider({
+          clientId: 'google-client-id',
+          clientSecret: 'google-client-secret',
+          redirectUri: 'https://app.example.com/auth/third-party/google/callback',
+        }),
+        createWeComProvider({
+          clientId: 'corp-id',
+          clientSecret: 'corp-secret',
+          agentId: '1000002',
+          redirectUri: 'https://app.example.com/auth/third-party/wecom/callback',
+        }),
+      ],
+      async loginHandler(userInfo, req, res) {
+        // Map third-party user info to a local user
+        return {
+          userId: `${userInfo.provider}_${userInfo.providerUserId}`,
+          roles: ['user'],
+        };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+After registration the framework exposes:
+
+- `GET /auth/third-party/:provider/login` — redirect to the provider authorization page
+- `GET|POST /auth/third-party/:provider/callback` — handle callback (POST for form_post providers such as Apple)
+
+### SAML Enterprise SSO
+
+```typescript
+import { SamlAuthModule } from 'luoluo-auth';
+
+@Module({
+  imports: [
+    SamlAuthModule.register({
+      serviceProvider: {
+        entityId: 'luoluo-auth',
+        assertEndpoint: 'https://app.example.com/auth/saml/acs',
+        certificate: '-----BEGIN CERTIFICATE-----...',
+        privateKey: '-----BEGIN PRIVATE KEY-----...',
+      },
+      identityProviders: [
+        {
+          id: 'okta',
+          name: 'Okta',
+          metadata: '<EntityDescriptor>...</EntityDescriptor>',
+        },
+      ],
+      async loginHandler(userInfo) {
+        return { userId: userInfo.providerUserId, roles: ['user'] };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Passport Strategy Bridge
+
+```typescript
+import { PassportBridgeModule } from 'luoluo-auth';
+import * as passport from 'passport';
+import { Strategy as SomeStrategy } from 'passport-some-strategy';
+
+@Module({
+  imports: [
+    PassportBridgeModule.register({
+      passport,
+      strategies: {
+        some: new SomeStrategy({ ... }, (profile, done) => done(null, profile)),
+      },
+      async loginHandler(userInfo) {
+        return { userId: userInfo.providerUserId, roles: ['user'] };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
 ## Comparison
 
 ### vs. Passport.js
@@ -600,7 +721,7 @@ npm run test:cov
 
 Coverage thresholds are configured in `package.json` to prevent regression.
 
-Current coverage: 33 unit test suites / 401 test cases plus 3 E2E suites / 14 cases, covering permission engine, auth service, memory/Redis session stores, OAuth2/OIDC, signature auth, nonce deduplication, rate limiting, device fingerprint, distributed lock, Cookie mode, Remember Me, multi-account switching, password encoding, WebSocket auth, data persistence layer, Passport adapter, Admin management API, module registration tests, and end-to-end authentication flows.
+Current coverage: 43 unit test suites / 456 test cases plus 3 E2E suites / 14 cases, covering permission engine, auth service, memory/Redis session stores, OAuth2/OIDC, signature auth, nonce deduplication, rate limiting, device fingerprint, distributed lock, Cookie mode, Remember Me, multi-account switching, password encoding, WebSocket auth, data persistence layer, Passport adapter, Admin management API, third-party login providers, SAML, module registration tests, and end-to-end authentication flows.
 
 ## API Documentation
 

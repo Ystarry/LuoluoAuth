@@ -541,6 +541,127 @@ const defaultConfig = {
 | `@RequireSafeAuth()`                             | 要求已开启二级认证   |
 | `@RequireSignature()`                            | 要求 API 签名认证 |
 
+## 第三方登录
+
+第三方登录以可选模块形式提供，采用"协议层 + 内置 Provider + Passport 桥接"三层架构：
+
+- **通用协议层**：`OAuth2ClientService` 统一处理 OAuth2 / OIDC 授权码流程，支持标准响应、form_post（Apple）、自定义 code 换取、自定义用户信息拉取等扩展点。
+- **内置 Provider**：覆盖海内外 C 端与国内 B 端高频场景，即开即用。
+- **SAML 协议层**：`SamlService` 基于 `samlify` 提供企业 SSO 登录请求、ACS 回调与 SP 元数据生成。
+- **Passport Strategy Bridge**：复用现有 Passport.js 生态，覆盖长尾小众 provider。
+
+### 内置 Provider
+
+| Provider | 工厂函数 | 说明 |
+| --- | --- | --- |
+| Google | `createGoogleProvider` | OIDC，支持 id_token 解析 |
+| Microsoft / Entra ID | `createMicrosoftProvider` | OIDC，支持多租户配置 |
+| GitHub | `createGitHubProvider` | OAuth2，自动拉取用户资料 |
+| Apple | `createAppleProvider` | form_post 回调，动态 ES256 client_secret，首次登录提取 name |
+| 微信（网站扫码） | `createWeChatProvider` | 微信开放平台 OAuth2 |
+| 企业微信 | `createWeComProvider` | 自建/内部应用扫码，code → userid → 详情 |
+| 钉钉 | `createDingTalkProvider` | 钉钉扫码 / 企业内部应用登录 |
+| 飞书 | `createFeishuProvider` | 企业自建 / 应用商店应用登录 |
+| QQ | `createQqProvider` | QQ 互联，处理 URL-encoded token 与 JSONP openid |
+
+### 快速使用
+
+```typescript
+import { Module } from '@nestjs/common';
+import {
+  ThirdPartyAuthModule,
+  createGoogleProvider,
+  createWeComProvider,
+} from 'luoluo-auth';
+
+@Module({
+  imports: [
+    ThirdPartyAuthModule.register({
+      stateSecret: 'your-state-secret',
+      providers: [
+        createGoogleProvider({
+          clientId: 'google-client-id',
+          clientSecret: 'google-client-secret',
+          redirectUri: 'https://app.example.com/auth/third-party/google/callback',
+        }),
+        createWeComProvider({
+          clientId: 'corp-id',
+          clientSecret: 'corp-secret',
+          agentId: '1000002',
+          redirectUri: 'https://app.example.com/auth/third-party/wecom/callback',
+        }),
+      ],
+      async loginHandler(userInfo, req, res) {
+        // 将第三方用户信息映射为本地用户
+        return {
+          userId: `${userInfo.provider}_${userInfo.providerUserId}`,
+          roles: ['user'],
+        };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+注册后框架自动暴露：
+
+- `GET /auth/third-party/:provider/login` — 跳转至第三方授权页
+- `GET|POST /auth/third-party/:provider/callback` — 处理回调（Apple 等使用 form_post 的 provider 走 POST）
+
+### SAML 企业 SSO
+
+```typescript
+import { SamlAuthModule } from 'luoluo-auth';
+
+@Module({
+  imports: [
+    SamlAuthModule.register({
+      serviceProvider: {
+        entityId: 'luoluo-auth',
+        assertEndpoint: 'https://app.example.com/auth/saml/acs',
+        certificate: '-----BEGIN CERTIFICATE-----...',
+        privateKey: '-----BEGIN PRIVATE KEY-----...',
+      },
+      identityProviders: [
+        {
+          id: 'okta',
+          name: 'Okta',
+          metadata: '<EntityDescriptor>...</EntityDescriptor>',
+        },
+      ],
+      async loginHandler(userInfo) {
+        return { userId: userInfo.providerUserId, roles: ['user'] };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Passport Strategy Bridge
+
+```typescript
+import { PassportBridgeModule } from 'luoluo-auth';
+import * as passport from 'passport';
+import { Strategy as SomeStrategy } from 'passport-some-strategy';
+
+@Module({
+  imports: [
+    PassportBridgeModule.register({
+      passport,
+      strategies: {
+        some: new SomeStrategy({ ... }, (profile, done) => done(null, profile)),
+      },
+      async loginHandler(userInfo) {
+        return { userId: userInfo.providerUserId, roles: ['user'] };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
 ## 框架对比
 
 ### 与 Passport.js 对比
@@ -598,7 +719,7 @@ npm run test:cov
 
 覆盖率阈值已在 `package.json` 中配置，用于防止回归。
 
-当前测试覆盖：33 个单元测试套件 / 401 个测试用例，外加 3 个 E2E 套件 / 14 个用例，涵盖权限引擎、认证服务、内存/Redis 会话存储、OAuth2/OIDC、签名认证、Nonce 去重、限流、设备指纹、分布式锁、Cookie 模式、Remember Me、多账号切换、密码加密、WebSocket 认证、数据持久化层、Passport 适配器、Admin 管理接口、模块级注册测试以及端到端认证流程。
+当前测试覆盖：43 个单元测试套件 / 456 个测试用例，外加 3 个 E2E 套件 / 14 个用例，涵盖权限引擎、认证服务、内存/Redis 会话存储、OAuth2/OIDC、签名认证、Nonce 去重、限流、设备指纹、分布式锁、Cookie 模式、Remember Me、多账号切换、密码加密、WebSocket 认证、数据持久化层、Passport 适配器、Admin 管理接口、第三方登录 Provider、SAML、模块级注册测试以及端到端认证流程。
 
 ## API 文档
 
