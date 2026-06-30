@@ -1,4 +1,4 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
+import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config'; // 需安装: @nestjs/config
 import Redis from 'ioredis';
 import type { RedisOptions } from 'ioredis';
@@ -350,7 +350,7 @@ export class AuthModule {
   /**
    * 统一的导出列表
    */
-  private static createExports(): Array<string | Function> {
+  private static createExports(): Array<string | Type<any>> {
     return [
       AuthService,
       AuthGuard,
