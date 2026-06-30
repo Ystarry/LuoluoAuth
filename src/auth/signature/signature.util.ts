@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
  * 签名配置
@@ -59,14 +59,16 @@ export function verifySignature(
   secret: string,
 ): boolean {
   const expected = generateSignature(payload, secret);
-  // 使用 timing-safe 比较防止时序攻击
+  // 使用 timingSafeEqual 防止时序攻击
   try {
-    return createHmac('sha256', secret)
-      .update(signature)
-      .digest()
-      .equals(createHmac('sha256', secret).update(expected).digest());
+    const expectedBuf = Buffer.from(expected, 'base64');
+    const signatureBuf = Buffer.from(signature, 'base64');
+    if (expectedBuf.length !== signatureBuf.length) {
+      return false;
+    }
+    return timingSafeEqual(expectedBuf, signatureBuf);
   } catch {
-    return signature === expected;
+    return false;
   }
 }
 
