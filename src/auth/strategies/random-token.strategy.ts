@@ -143,4 +143,28 @@ export class RandomTokenStrategy implements TokenStrategy {
   extractSessionId(token: string): string {
     return token;
   }
+
+  /**
+   * 轮换随机 Token
+   * 复制旧会话数据到新 Token，并删除旧 Token，防止 Cookie 泄露后长期有效
+   * @param token - 旧 Token 字符串
+   * @returns 新 Token 字符串
+   */
+  async rotate(token: string): Promise<string | undefined> {
+    const session = await this.sessionStore.get(token);
+    if (!session) {
+      return undefined;
+    }
+
+    const newToken = this.generate({
+      sessionId: token,
+      userId: session.userId,
+      device: session.device,
+    });
+
+    await this.sessionStore.set(newToken, session);
+    await this.sessionStore.delete(token);
+
+    return newToken;
+  }
 }

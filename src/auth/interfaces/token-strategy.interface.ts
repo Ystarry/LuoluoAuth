@@ -42,4 +42,12 @@ export interface TokenStrategy {
    * @returns 会话 ID
    */
   extractSessionId?(token: string): string | Promise<string>;
+
+  /**
+   * 轮换 Token（Cookie 模式自动续期时使用）
+   * 返回新的 Token 字符串；若策略不支持轮换（如 JWT），返回 undefined
+   * @param token - 旧 Token 字符串
+   * @returns 新 Token 字符串，或 undefined
+   */
+  rotate?(token: string): string | Promise<string | undefined>;
 }

@@ -13,6 +13,7 @@ import {
 } from './strategies/random-token.strategy';
 import { MemoryStore } from './stores/memory-store';
 import { RedisStore } from './stores/redis-store';
+import { RedisLifecycleService } from './stores/redis-lifecycle.service';
 import type { SessionStore } from './interfaces/session-store.interface';
 import { PermissionEngine } from './permission/permission.engine';
 import {
@@ -276,6 +277,7 @@ export class AuthModule {
       PermissionEngine,
       AuditService,
       SignatureGuard,
+      RedisLifecycleService,
     ];
 
     return {
@@ -449,6 +451,7 @@ export class AuthModule {
         PermissionEngine,
         AuditService,
         SignatureGuard,
+        RedisLifecycleService,
       ],
       exports: [
         AuthService,
@@ -466,6 +469,37 @@ export class AuthModule {
   }
 
   /**
+   * 将 JWT expiresIn（如 '7d'、3600）统一转换为毫秒
+   * 用于让 tokenTtl 与 JWT 过期时间保持一致
+   * @param expiresIn - JWT 过期时间
+   * @returns 对应的毫秒数，无法解析时返回 0
+   */
+  private static expiresInToMs(
+    expiresIn: string | number | undefined,
+  ): number {
+    if (expiresIn === undefined) {
+      return 0;
+    }
+    if (typeof expiresIn === 'number') {
+      return expiresIn * 1000;
+    }
+    const match = /^(\d+)([smhdw])$/.exec(expiresIn);
+    if (!match) {
+      return 0;
+    }
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    const multipliers: Record<string, number> = {
+      s: 1000,
+      m: 60 * 1000,
+      h: 60 * 60 * 1000,
+      d: 24 * 60 * 60 * 1000,
+      w: 7 * 24 * 60 * 60 * 1000,
+    };
+    return value * (multipliers[unit] ?? 0);
+  }
+
+  /**
    * 将 AuthFrameworkConfig 映射为 AuthModuleOptions
    * @param config - 框架配置
    * @returns 模块配置选项
@@ -475,6 +509,9 @@ export class AuthModule {
   ): AuthModuleOptions {
     const merged = { ...defaultConfig, ...config };
 
+    const jwtExpiresIn = (merged.token?.expiresIn ||
+      defaultConfig.token!.expiresIn) as JwtStrategyOptions['expiresIn'];
+
     return {
       jwt: {
         secret:
@@ -482,12 +519,13 @@ export class AuthModule {
           merged.token.secret !== defaultConfig.token!.secret
             ? merged.token.secret
             : defaultConfig.token!.secret,
-        expiresIn: (merged.token?.expiresIn ||
-          defaultConfig.token!.expiresIn) as JwtStrategyOptions['expiresIn'],
+        expiresIn: jwtExpiresIn,
       },
       auth: {
         tokenTtl:
-          merged.loginPolicy?.tokenTtl || defaultConfig.loginPolicy!.tokenTtl,
+          merged.loginPolicy?.tokenTtl ||
+          this.expiresInToMs(jwtExpiresIn) ||
+          defaultConfig.loginPolicy!.tokenTtl,
         loginPolicy:
           merged.loginPolicy?.policy || defaultConfig.loginPolicy!.policy,
         autoRenew:
@@ -617,6 +655,7 @@ export class AuthModule {
         inject: [{ token: 'REDIS_CLIENT', optional: true }],
       },
       ...this.createCookieProviders(options.cookie),
+      RedisLifecycleService,
     ];
   }
 

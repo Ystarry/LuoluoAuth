@@ -236,7 +236,7 @@ export class AdminController {
       throw new NotFoundException('Client not found');
     }
 
-    await store.removeToken(clientId);
+    await store.removeClient(clientId);
     return { success: true, clientId };
   }
 

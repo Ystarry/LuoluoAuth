@@ -7,9 +7,9 @@ import { PasswordEncoder } from './password-encoder.interface';
  */
 export class BcryptPasswordEncoder implements PasswordEncoder {
   /**
-   * @param rounds - 计算成本（salt rounds），默认 10
+   * @param rounds - 计算成本（salt rounds），默认 12（OWASP 推荐）
    */
-  constructor(private readonly rounds = 10) {}
+  constructor(private readonly rounds = 12) {}
 
   async hash(password: string): Promise<string> {
     return bcrypt.hash(password, this.rounds);

@@ -12,7 +12,7 @@ export interface CookieConfig {
   path?: string;
   /** 是否仅允许 HTTP 读取，禁止前端 JS 访问（默认 true） */
   httpOnly?: boolean;
-  /** 是否仅通过 HTTPS 传输（默认 false） */
+  /** 是否仅通过 HTTPS 传输（默认 true，生产环境建议保持开启） */
   secure?: boolean;
   /** SameSite 策略（默认 lax） */
   sameSite?: 'strict' | 'lax' | 'none' | boolean;
@@ -33,7 +33,7 @@ export const defaultCookieConfig: Required<
   name: 'auth-token',
   path: '/',
   httpOnly: true,
-  secure: false,
+  secure: true,
   sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60,
 };

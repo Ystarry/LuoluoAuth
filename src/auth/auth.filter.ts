@@ -32,6 +32,23 @@ interface UnifiedErrorResponse {
  */
 @Catch(AuthException, HttpException)
 export class AuthExceptionFilter implements ExceptionFilter {
+  /** 按 locale 缓存 I18nService 实例，避免每次请求都新建 */
+  private readonly i18nCache = new Map<SupportedLocale, I18nService>();
+
+  /**
+   * 获取指定语言的 I18nService 实例
+   * @param locale - 语言标识
+   * @returns I18nService 实例
+   */
+  private getI18nService(locale: SupportedLocale): I18nService {
+    let service = this.i18nCache.get(locale);
+    if (!service) {
+      service = new I18nService(locale);
+      this.i18nCache.set(locale, service);
+    }
+    return service;
+  }
+
   /**
    * 解析请求希望使用的语言
    * 仅识别当前支持的语言，否则使用默认语言
@@ -106,7 +123,7 @@ export class AuthExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const i18n = new I18nService(this.resolveLocale(request));
+    const i18n = this.getI18nService(this.resolveLocale(request));
 
     let status: number;
     let code: AuthErrorCode;

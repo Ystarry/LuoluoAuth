@@ -184,6 +184,8 @@ export interface OAuth2ClientStore {
   revokeRefreshToken(refreshToken: string): void | Promise<void>;
   /** 删除 Token */
   removeToken(accessToken: string): void | Promise<void>;
+  /** 删除 OAuth2 客户端 */
+  removeClient(clientId: string): void | Promise<void>;
 }
 
 /**
@@ -478,5 +480,13 @@ export class InMemoryOAuth2ClientStore implements OAuth2ClientStore {
         }
       }
     }
+  }
+
+  /**
+   * 删除 OAuth2 客户端
+   * @param clientId - 客户端 ID
+   */
+  removeClient(clientId: string): void {
+    this.clients.delete(clientId);
   }
 }
