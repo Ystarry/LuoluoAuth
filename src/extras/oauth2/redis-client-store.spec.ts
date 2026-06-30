@@ -7,6 +7,7 @@ import type {
 
 class MockPipeline {
   private commands: Array<{ name: string; args: unknown[] }> = [];
+  private shouldFail = false;
 
   set(...args: unknown[]) {
     this.commands.push({ name: 'set', args });
@@ -33,8 +34,16 @@ class MockPipeline {
     return this;
   }
 
-  async exec(): Promise<[null, unknown][]> {
-    const results: [null, unknown][] = [];
+  failNext(): this {
+    this.shouldFail = true;
+    return this;
+  }
+
+  async exec(): Promise<[Error | null, unknown][]> {
+    if (this.shouldFail) {
+      return [[new Error('Redis pipeline error'), null]];
+    }
+    const results: [Error | null, unknown][] = [];
     for (const cmd of this.commands) {
       const result = await this.mockRedis.execute(cmd.name, cmd.args);
       results.push([null, result]);
@@ -48,9 +57,19 @@ class MockPipeline {
 class MockRedis {
   private readonly store = new Map<string, string>();
   private readonly sets = new Map<string, Set<string>>();
+  private failNextPipeline = false;
 
   pipeline() {
-    return new MockPipeline(this);
+    const pipeline = new MockPipeline(this);
+    if (this.failNextPipeline) {
+      this.failNextPipeline = false;
+      pipeline.failNext();
+    }
+    return pipeline;
+  }
+
+  failNextPipelineExec(): void {
+    this.failNextPipeline = true;
   }
 
   set(key: string, value: string, ...args: unknown[]): Promise<unknown> {
@@ -310,6 +329,21 @@ describe('RedisOAuth2ClientStore', () => {
 
       expect(await store.getToken('at-2')).toEqual(token1);
       expect(await store.getToken('at-3')).toEqual(token2);
+    });
+
+    it('should throw when pipeline returns error', async () => {
+      mockRedis.failNextPipelineExec();
+      const token: OAuth2Token = {
+        accessToken: 'at-err',
+        refreshToken: 'rt-err',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+        userId: 'user-1',
+      };
+
+      await expect(store.saveToken(token)).rejects.toThrow(
+        'Redis pipeline error',
+      );
     });
   });
 

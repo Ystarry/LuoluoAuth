@@ -35,6 +35,24 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
     private readonly codeTtlSeconds = 10 * 60,
   ) {}
 
+  /**
+   * 增加 pipeline 出错时抛错的用例
+   * 检查 Redis pipeline 执行结果，任一命令失败则抛出对应错误
+   * @param results - pipeline.exec() 返回值
+   */
+  private checkPipelineResults(
+    results: [Error | null, unknown][] | null,
+  ): void {
+    if (!results) {
+      throw new Error('Redis pipeline returned null');
+    }
+    for (const [err] of results) {
+      if (err) {
+        throw err;
+      }
+    }
+  }
+
   private getClientKey(clientId: string): string {
     return `${this.prefix}:clients:${clientId}`;
   }
@@ -211,7 +229,7 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
       pipeline.expire(familyKey, this.tokenTtlSeconds);
     }
 
-    await pipeline.exec();
+    this.checkPipelineResults(await pipeline.exec());
   }
 
   /**
@@ -308,7 +326,7 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
     }
 
     pipeline.del(familyKey);
-    await pipeline.exec();
+    this.checkPipelineResults(await pipeline.exec());
   }
 
   /**
@@ -330,7 +348,7 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
     pipeline.del(refreshTokenKey);
     pipeline.del(this.getTokenKey(entry.accessToken));
     pipeline.srem(this.getFamilyKey(entry.family), refreshToken);
-    await pipeline.exec();
+    this.checkPipelineResults(await pipeline.exec());
   }
 
   /**
@@ -355,6 +373,14 @@ export class RedisOAuth2ClientStore implements OAuth2ClientStore {
       }
     }
 
-    await pipeline.exec();
+    this.checkPipelineResults(await pipeline.exec());
+  }
+
+  /**
+   * 删除 OAuth2 客户端
+   * @param clientId - 客户端 ID
+   */
+  async removeClient(clientId: string): Promise<void> {
+    await this.redis.del(this.getClientKey(clientId));
   }
 }

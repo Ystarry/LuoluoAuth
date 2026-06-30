@@ -29,6 +29,23 @@ export class RedisStore implements SessionStore, BlacklistStore {
   constructor(private readonly redis: Redis) {}
 
   /**
+   * 检查 Redis pipeline 执行结果，任一命令失败则抛出对应错误
+   * @param results - pipeline.exec() 返回值
+   */
+  private checkPipelineResults(
+    results: [Error | null, unknown][] | null,
+  ): void {
+    if (!results) {
+      throw new Error('Redis pipeline returned null');
+    }
+    for (const [err] of results) {
+      if (err) {
+        throw err;
+      }
+    }
+  }
+
+  /**
    * 生成完整的 Redis key
    * @param sessionId - 会话 ID
    * @returns 完整的 key 字符串
@@ -89,7 +106,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
         pipeline.sadd(deviceIndexKey, sessionId);
       }
     }
-    await pipeline.exec();
+    this.checkPipelineResults(await pipeline.exec());
   }
 
   /**
@@ -131,7 +148,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
       if (deviceIndexKey) {
         pipeline.srem(deviceIndexKey, sessionId);
       }
-      await pipeline.exec();
+      this.checkPipelineResults(await pipeline.exec());
     } else {
       await this.redis.del(key);
     }
@@ -158,6 +175,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
       pipeline.get(this.getKey(sessionId));
     }
     const results = await pipeline.exec();
+    this.checkPipelineResults(results);
 
     if (results) {
       for (let i = 0; i < sessionIds.length; i++) {
@@ -186,7 +204,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
       }
     }
 
-    await deletePipeline.exec();
+    this.checkPipelineResults(await deletePipeline.exec());
   }
 
   /**
@@ -212,6 +230,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
     }
 
     const results = await pipeline.exec();
+    this.checkPipelineResults(results);
 
     if (!results) {
       return;
@@ -236,7 +255,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
       }
     }
 
-    await deletePipeline.exec();
+    this.checkPipelineResults(await deletePipeline.exec());
   }
 
   /**
@@ -258,6 +277,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
     }
 
     const results = await pipeline.exec();
+    this.checkPipelineResults(results);
     const sessions: SessionData[] = [];
 
     if (results) {
@@ -306,6 +326,7 @@ export class RedisStore implements SessionStore, BlacklistStore {
     }
 
     const results = await pipeline.exec();
+    this.checkPipelineResults(results);
     const sessions: { sessionId: string; createTime: number }[] = [];
 
     if (results) {
