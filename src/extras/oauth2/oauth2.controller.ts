@@ -222,15 +222,16 @@ export class OAuth2Controller {
     const codeChallengeMethod = this.normalizeCodeChallengeMethod(
       query.code_challenge_method,
     );
-    if (
-      query.code_challenge &&
-      codeChallengeMethod !== 'S256' &&
-      codeChallengeMethod !== 'plain'
-    ) {
+    /** authorize 端点强制 PKCE 使用 S256 ，拒绝 plain */
+    if (query.code_challenge && codeChallengeMethod !== 'S256') {
       throw new BadRequestException(
-        'Unsupported code_challenge_method. Use S256 or plain',
+        'Unsupported code_challenge_method. Public clients must use S256',
       );
     }
+
+    // 归一化并绑定 state：若客户端未提供则自动生成，
+    // 确保后续回调始终携带可校验的 state，降低 OAuth CSRF 风险
+    const state = query.state || randomUUID();
 
     const mode = this.authorizeConfig?.authCheckMode || 'redirect';
 
@@ -266,7 +267,7 @@ export class OAuth2Controller {
 
         const redirectUrl = new URL(loginUrl, 'http://localhost');
         redirectUrl.searchParams.set('redirect_uri', returnUrl);
-        redirectUrl.searchParams.set(stateKey, query.state || '');
+        redirectUrl.searchParams.set(stateKey, state);
         res.redirect(redirectUrl.toString());
         return;
       }
@@ -282,7 +283,7 @@ export class OAuth2Controller {
       userId,
       redirectUri: query.redirect_uri,
       expiresAt: Date.now() + 10 * 60 * 1000, // 授权码 10 分钟有效
-      state: query.state,
+      state,
       scope: query.scope,
       nonce: query.nonce,
       codeChallenge: query.code_challenge,
@@ -291,12 +292,10 @@ export class OAuth2Controller {
 
     await this.clientStore.saveAuthorizationCode(authCode);
 
-    // 构建回调 URL，携带授权码
+    // 构建回调 URL，携带授权码与绑定后的 state
     const redirectUrl = new URL(query.redirect_uri);
     redirectUrl.searchParams.set('code', code);
-    if (query.state) {
-      redirectUrl.searchParams.set('state', query.state);
-    }
+    redirectUrl.searchParams.set('state', state);
 
     res.redirect(redirectUrl.toString());
   }
