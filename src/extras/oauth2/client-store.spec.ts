@@ -277,6 +277,71 @@ describe('OAuth2ClientStore', () => {
     });
   });
 
+  describe('token expiration', () => {
+    it('should set expiresAt when saving token', () => {
+      const token: OAuth2Token = {
+        accessToken: 'at-13',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+      };
+
+      store.saveToken(token);
+      expect(token.expiresAt).toBeDefined();
+      expect(token.expiresAt).toBeGreaterThan(Date.now());
+    });
+
+    it('should return undefined for expired access token', () => {
+      const token: OAuth2Token = {
+        accessToken: 'at-14',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+      };
+
+      store.saveToken(token);
+      token.expiresAt = Date.now() - 1;
+
+      expect(store.getToken('at-14')).toBeUndefined();
+    });
+
+    it('should reject refresh token when access token is expired', () => {
+      const token: OAuth2Token = {
+        accessToken: 'at-15',
+        refreshToken: 'rt-15',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+        userId: 'user-1',
+      };
+
+      store.saveToken(token);
+      token.expiresAt = Date.now() - 1;
+
+      expect(store.consumeRefreshToken('rt-15')).toBeUndefined();
+      expect(store.getToken('at-15')).toBeUndefined();
+    });
+
+    it('should evict expired tokens on save', () => {
+      const expiredToken: OAuth2Token = {
+        accessToken: 'at-16',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+      };
+
+      store.saveToken(expiredToken);
+      expiredToken.expiresAt = Date.now() - 1;
+
+      const newToken: OAuth2Token = {
+        accessToken: 'at-17',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+      };
+
+      store.saveToken(newToken);
+
+      expect(store.getToken('at-16')).toBeUndefined();
+      expect(store.getToken('at-17')).toBeDefined();
+    });
+  });
+
   describe('authorization code', () => {
     it('should save and consume authorization code', () => {
       const code = {

@@ -87,6 +87,8 @@ export interface OAuth2Token {
   userId?: string;
   /** OIDC ID Token */
   idToken?: string;
+  /** 内部过期时间戳（毫秒，由存储层写入） */
+  expiresAt?: number;
 }
 
 /**
@@ -311,6 +313,9 @@ export class InMemoryOAuth2ClientStore implements OAuth2ClientStore {
    * @param family - 令牌族 ID（refresh_token 模式复用同一 family）
    */
   saveToken(token: OAuth2Token, family?: string): void {
+    // 记录内部过期时间戳，便于内存实现清理过期 Token
+    token.expiresAt = Date.now() + token.expiresIn * 1000;
+
     this.tokens.set(token.accessToken, token);
     if (token.refreshToken) {
       const tokenFamily = family || randomUUID();
@@ -326,15 +331,26 @@ export class InMemoryOAuth2ClientStore implements OAuth2ClientStore {
       }
       this.tokenFamilies.get(tokenFamily)!.add(token.refreshToken);
     }
+
+    // 保存时顺带清理过期条目，防止内存无限增长
+    this.evictExpiredTokens();
   }
 
   /**
    * 根据访问令牌获取 Token 信息
    * @param accessToken - 访问令牌
-   * @returns Token 信息，不存在则返回 undefined
+   * @returns Token 信息，不存在或已过期则返回 undefined
    */
   getToken(accessToken: string): OAuth2Token | undefined {
-    return this.tokens.get(accessToken);
+    const token = this.tokens.get(accessToken);
+    if (!token) {
+      return undefined;
+    }
+    if (token.expiresAt && Date.now() > token.expiresAt) {
+      this.tokens.delete(accessToken);
+      return undefined;
+    }
+    return token;
   }
 
   /**
@@ -353,6 +369,14 @@ export class InMemoryOAuth2ClientStore implements OAuth2ClientStore {
       return undefined;
     }
 
+    // access token 已过期则无法继续刷新
+    if (token.expiresAt && Date.now() > token.expiresAt) {
+      this.tokens.delete(entry.accessToken);
+      this.refreshTokens.delete(refreshToken);
+      this.removeFromFamily(entry.family, refreshToken);
+      return undefined;
+    }
+
     // 复用检测：若该 refresh token 已被使用过，说明被盗用
     if (entry.used) {
       return { reuseDetected: true, family: entry.family };
@@ -362,6 +386,31 @@ export class InMemoryOAuth2ClientStore implements OAuth2ClientStore {
     entry.used = true;
 
     return { token, family: entry.family, reuseDetected: false };
+  }
+
+  /**
+   * 清理所有已过期的 Token
+   */
+  private evictExpiredTokens(): void {
+    const now = Date.now();
+    for (const [accessToken, token] of this.tokens.entries()) {
+      if (token.expiresAt && now > token.expiresAt) {
+        this.removeToken(accessToken);
+      }
+    }
+  }
+
+  /**
+   * 从令牌族中移除指定 refresh token
+   */
+  private removeFromFamily(family: string, refreshToken: string): void {
+    const familyTokens = this.tokenFamilies.get(family);
+    if (familyTokens) {
+      familyTokens.delete(refreshToken);
+      if (familyTokens.size === 0) {
+        this.tokenFamilies.delete(family);
+      }
+    }
   }
 
   /**
