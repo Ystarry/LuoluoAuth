@@ -527,7 +527,7 @@ const defaultConfig = {
   signature: { enabled: false, secret: 'default-signature-secret-change-me', timestampTolerance: 300000 },
   rateLimit: { enabled: false, strategy: 'sliding-window', keyType: 'ip-user', windowSeconds: 60, maxRequests: 10, refillRate: 1, capacity: 10 },
   fingerprint: { enabled: false, strict: false },
-  cookie: { enabled: false, name: 'auth-token', path: '/', httpOnly: true, secure: false, sameSite: 'lax', maxAge: 604800 },
+  cookie: { enabled: false, name: 'auth-token', path: '/', httpOnly: true, secure: true, sameSite: 'lax', maxAge: 604800 },
   distributedLock: { enabled: true, ttlMs: 5000, retries: 0, retryDelayMs: 50 },
   multiAccount: { enabled: false, maxAccounts: 5 },
 };
