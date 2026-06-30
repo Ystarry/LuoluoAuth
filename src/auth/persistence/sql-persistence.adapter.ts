@@ -56,7 +56,21 @@ export abstract class SqlPersistenceAdapter<
   constructor(
     protected readonly executor: SqlExecutor,
     protected readonly tableName: string,
-  ) {}
+  ) {
+    this.validateTableName(tableName);
+  }
+
+  /**
+   * 校验表名，防止 SQL 注入
+   * 仅允许字母、数字和下划线
+   */
+  private validateTableName(tableName: string): void {
+    if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      throw new Error(
+        `[SqlPersistenceAdapter] Invalid table name "${tableName}". Only alphanumeric characters and underscores are allowed.`,
+      );
+    }
+  }
 
   /**
    * 返回占位符
