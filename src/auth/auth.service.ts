@@ -594,6 +594,19 @@ export class AuthService {
   }
 
   /**
+   * 轮换当前 Token 委托给 TokenStrategy.rotate()
+   * 仅当 Token 策略支持 rotate 时返回新 Token，否则返回 undefined
+   * @param token - 当前 Token 字符串
+   * @returns 新 Token 字符串，或 undefined
+   */
+  async rotateToken(token: string): Promise<string | undefined> {
+    if (!this.tokenStrategy.rotate) {
+      return undefined;
+    }
+    return this.tokenStrategy.rotate(token);
+  }
+
+  /**
    * 开启二级认证
    * 在会话中标记 safeAuth = true，并记录开启时间
    * @param sessionId - 会话 ID

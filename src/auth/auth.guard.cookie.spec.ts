@@ -38,6 +38,7 @@ describe('AuthGuard Cookie mode', () => {
       isBanned: jest.fn().mockResolvedValue(false),
       getConfig: jest.fn().mockReturnValue({ autoRenew: false }),
       renewSession: jest.fn(),
+      rotateToken: jest.fn().mockResolvedValue(undefined),
     } as unknown as AuthService;
 
     cookieService = {
@@ -86,6 +87,30 @@ describe('AuthGuard Cookie mode', () => {
       undefined,
     );
     expect(cookieService.write).toHaveBeenCalledWith(res, token);
+  });
+
+  it('should rotate cookie token when strategy supports rotation', async () => {
+    const oldToken = createToken({ sessionId: 's1', userId: 'u1' });
+    const newToken = createToken({ sessionId: 's2', userId: 'u1' });
+    const req = {
+      headers: {},
+      cookies: { 'auth-token': oldToken },
+      ip: '127.0.0.1',
+    } as unknown as Request;
+    const res = { cookie: jest.fn() } as unknown as Response;
+
+    (cookieService.read as jest.Mock).mockReturnValue(oldToken);
+    (authService.validateToken as jest.Mock).mockResolvedValue({
+      userId: 'u1',
+      createTime: Date.now(),
+    });
+    (authService.rotateToken as jest.Mock).mockResolvedValue(newToken);
+
+    const result = await guard.canActivate(createContext(req, res));
+
+    expect(result).toBe(true);
+    expect(authService.rotateToken).toHaveBeenCalledWith(oldToken);
+    expect(cookieService.write).toHaveBeenCalledWith(res, newToken);
   });
 
   it('should prefer header token over cookie token', async () => {

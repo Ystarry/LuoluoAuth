@@ -12,6 +12,7 @@ import type { Request, Response } from 'express';
 import { RpcException } from '@nestjs/microservices'; // 需安装: @nestjs/microservices
 import jwt from 'jsonwebtoken'; // 需安装: jsonwebtoken
 import { AuthService } from './auth.service';
+import { AuthException } from './errors/auth.exception';
 import { CookieService } from './cookie/cookie.service';
 import {
   PermissionEngine,
@@ -126,8 +127,15 @@ export class AuthGuard implements CanActivate {
       );
       decoded = jwt.decode(token) as DecodedToken;
       // 将会话数据挂载到请求对象上
-      request['user'] = session;
-    } catch {
+      (request as unknown as Record<string, unknown>)['user'] = session;
+    } catch (error: unknown) {
+      // 保留 AuthException 中的原始状态码，避免 403 被吞并为 401
+      if (error instanceof AuthException) {
+        if (error.status === 403) {
+          throw new ForbiddenException(error.message);
+        }
+        throw new UnauthorizedException(error.message);
+      }
       throw new UnauthorizedException('Invalid or expired token');
     }
 
@@ -139,10 +147,13 @@ export class AuthGuard implements CanActivate {
       }
     }
 
+    // 写回新 Token
     // Cookie 模式自动续期：每次请求后刷新 Cookie 有效期
+    // 若 Token 策略支持轮换，则同时下发新 Token，防止 Cookie 泄露后长期有效
     if (source === 'cookie' && this.cookieService?.isEnabled()) {
       const response = context.switchToHttp().getResponse<Response>();
-      this.cookieService.write(response, token);
+      const rotatedToken = await this.authService.rotateToken(token);
+      this.cookieService.write(response, rotatedToken ?? token);
     }
 
     // JWT 自动续签逻辑
