@@ -95,4 +95,45 @@ describe('RandomTokenStrategy', () => {
     });
     expect(strategy.extractSessionId?.(token)).toBe(token);
   });
+
+  it('should throw for unsupported token style', () => {
+    const strategy = new RandomTokenStrategy(store, {
+      style: 'unknown' as unknown as 'random-32',
+    });
+    expect(() =>
+      strategy.generate({ sessionId: 'ignored', userId: 'u1' }),
+    ).toThrow(AuthException);
+  });
+
+  it('should rotate token and copy session data', async () => {
+    const strategy = new RandomTokenStrategy(store, { style: 'random-32' });
+    const oldToken = strategy.generate({
+      sessionId: 'old-session',
+      userId: 'u1',
+      device: 'd1',
+    });
+
+    await store.set(
+      oldToken,
+      { userId: 'u1', device: 'd1', createTime: Date.now() },
+      3600000,
+    );
+
+    const newToken = await strategy.rotate!(oldToken);
+
+    expect(newToken).toBeDefined();
+    expect(newToken).not.toBe(oldToken);
+    expect(await store.get(oldToken)).toBeNull();
+    expect(await store.get(newToken!)).toEqual({
+      userId: 'u1',
+      device: 'd1',
+      createTime: expect.any(Number),
+    });
+  });
+
+  it('should return undefined when rotating non-existent token', async () => {
+    const strategy = new RandomTokenStrategy(store, { style: 'random-32' });
+    const result = await strategy.rotate!('missing-token');
+    expect(result).toBeUndefined();
+  });
 });
