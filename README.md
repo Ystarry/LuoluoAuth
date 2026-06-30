@@ -1,6 +1,6 @@
 # luoluo-auth
 
-Luoluo-auth is an enterprise-level authentication authorization framework specially designed for NestJS ecology. Compared with the Sa-Token framework widely used in benchmarking Java, it is the first time to transplant the complete capability system of Sa-Token to Node.js/NestJS technology stack. The framework covers the whole scene authentication requirements from single application to micro-service architecture, and from HTTP to WebSocket, and provides complete functions such as JWT and random Token dual strategy, RBAC authority engine, OAuth2/OIDC authorization server, SSO single sign-on, API signature authentication, device fingerprint binding, etc., which fills the gap of NestJS ecology in the field of enterprise-level authentication framework.
+`luoluo-auth` is a NestJS authentication library that provides session management, JWT/random token strategies, RBAC, OAuth2/OIDC, SSO, API signature verification, and rate limiting. It is inspired by Java's Sa-Token and aims to keep common auth patterns in one place without pulling in too many external dependencies.
 
 ## Features
 
