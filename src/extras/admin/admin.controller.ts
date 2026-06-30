@@ -14,7 +14,7 @@ import {
 import type { Request } from 'express';
 import { AuthService } from '../../auth/auth.service';
 import { extractBearerToken } from '../../auth/utils/token.util';
-import type { CookieService } from '../../auth/cookie/cookie.service';
+import { CookieService } from '../../auth/cookie/cookie.service';
 import type { AuthFrameworkConfig } from '../../auth/auth.config';
 import type {
   SessionStore,
@@ -44,7 +44,7 @@ export class AdminController {
     @Inject('OAUTH2_CLIENT_STORE')
     private readonly oauth2ClientStore?: OAuth2ClientStore,
     @Optional()
-    @Inject('COOKIE_SERVICE')
+    @Inject(CookieService)
     private readonly cookieService?: CookieService,
     @Optional()
     @Inject('AUTH_CONFIG')
