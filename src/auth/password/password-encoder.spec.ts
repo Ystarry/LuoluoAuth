@@ -17,6 +17,12 @@ describe('PasswordEncoder', () => {
       const hash = await encoder.hash('password');
       expect(hash.startsWith('$2b$05$')).toBe(true);
     });
+
+    it('should default to OWASP recommended rounds', async () => {
+      const encoder = new BcryptPasswordEncoder();
+      const hash = await encoder.hash('password');
+      expect(hash.startsWith('$2b$12$')).toBe(true);
+    });
   });
 
   describe('Argon2PasswordEncoder', () => {

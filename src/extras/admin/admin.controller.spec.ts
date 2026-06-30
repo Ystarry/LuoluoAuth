@@ -53,6 +53,7 @@ describe('AdminController', () => {
       }
       return Promise.resolve(undefined);
     }),
+    removeClient: jest.fn().mockResolvedValue(undefined),
     removeToken: jest.fn().mockResolvedValue(undefined),
   };
 
