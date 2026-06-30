@@ -1,5 +1,5 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // 需安装: @nestjs/config
+import { ConfigService } from '@nestjs/config'; // 需安装: @nestjs/config
 import Redis from 'ioredis';
 import type { RedisOptions } from 'ioredis';
 import { plainToInstance } from 'class-transformer';
@@ -88,7 +88,6 @@ export class AuthModule {
     const cookieProviders = this.createCookieProviders(options.cookie);
     return {
       module: AuthModule,
-      imports: [ConfigModule],
       providers: [
         ...providers,
         ...signatureProviders,
@@ -281,7 +280,6 @@ export class AuthModule {
 
     return {
       module: AuthModule,
-      imports: [ConfigModule],
       providers,
       exports: [
         AuthService,
@@ -301,12 +299,15 @@ export class AuthModule {
   /**
    * 使用 @nestjs/config 注册认证模块
    * 从 ConfigService 中读取 'auth' 配置项
+   *
+   * 注意：调用方需先在应用根模块中导入 ConfigModule.forRoot()，
+   * 否则 ConfigService 不可用，启动时会抛出依赖注入错误。
+   *
    * @returns 动态模块定义
    */
   static forConfig(): DynamicModule {
     return {
       module: AuthModule,
-      imports: [ConfigModule],
       providers: [
         {
           provide: 'AUTH_MODULE_OPTIONS',
