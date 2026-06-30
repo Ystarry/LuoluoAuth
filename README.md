@@ -543,6 +543,48 @@ const defaultConfig = {
 | `@RequireSafeAuth()`                             | Requires secondary authentication            |
 | `@RequireSignature()`                            | Requires API signature verification          |
 
+## Comparison
+
+### vs. Passport.js
+
+Passport.js is the de facto authentication middleware framework for Node.js, with a Strategy-based mechanism supporting 500+ identity providers. The differences from luoluo-auth are mainly:
+
+| Dimension | Passport.js | luoluo-auth |
+| --- | --- | --- |
+| Positioning | Authentication middleware framework | All-in-one NestJS authentication & authorization framework |
+| Scope | Identity verification only | Authentication + authorization + session governance + security hardening |
+| Ecosystem | 500+ strategies (Google, GitHub, SAML, OIDC, etc.) | Built-in JWT/random token, RBAC, OAuth2/OIDC, SSO, signature auth, rate limiting, audit logging |
+| Session model | Usually stateless JWT or session cookie | Server-side session-centric, supports single/multiple/mutual-exclusion login, kick, ban, sliding renewal |
+| NestJS integration | Wrapped via @nestjs/passport | Native dynamic module, inject directly |
+| Extensibility | Pluggable strategies, mature community | Pluggable modules, Passport adapter to reuse part of the ecosystem |
+
+**When to choose**
+
+- Choose Passport.js if you need many third-party identity providers or the project is based on Express/Fastify.
+- Choose luoluo-auth if you are in NestJS and need integrated session governance, RBAC, OAuth2 Server, SSO, API signature, etc.
+
+### vs. Sa-Token (Java)
+
+luoluo-auth is heavily inspired by Sa-Token in the Java ecosystem, aiming to bring Sa-Token's session governance philosophy to Node.js / NestJS:
+
+| Dimension | Sa-Token (Java) | luoluo-auth |
+| --- | --- | --- |
+| Language / Runtime | Java / JVM | TypeScript / Node.js |
+| Framework integration | Spring Boot / Spring Cloud | NestJS |
+| Session model | Session-centric with distributed session support | Session-centric with Memory / Redis Store |
+| Login policies | Single / multiple / mutual-exclusion login | Full port: single / multiple / mutual-exclusion |
+| Token style | Random token by default, JWT extension supported | JWT by default, UUID-v7 / ULID / random string token supported |
+| RBAC | Built-in role/permission and route interception | Built-in PermissionEngine + decorators |
+| SSO / OAuth2 | Built-in Sa-Token-SSO, Sa-Token-OAuth2 | Built-in SsoModule, OAuth2Module |
+| Microservices | Dubbo, Spring Cloud, etc. | gRPC / TCP via @nestjs/microservices |
+| Type safety | Java generics | Native TypeScript, decorator metadata driven |
+| Ecosystem maturity | Large community, many plugins | Emerging project, focused on NestJS ecosystem |
+
+**When to choose**
+
+- Choose Sa-Token if your stack is Java/Spring Boot.
+- Choose luoluo-auth if your stack is Node.js/NestJS and you want Sa-Token-style session governance and permission system.
+
 ## Testing
 
 ```bash

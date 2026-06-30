@@ -541,6 +541,48 @@ const defaultConfig = {
 | `@RequireSafeAuth()`                             | 要求已开启二级认证   |
 | `@RequireSignature()`                            | 要求 API 签名认证 |
 
+## 框架对比
+
+### 与 Passport.js 对比
+
+Passport.js 是 Node.js 生态事实标准的认证中间件框架，通过 Strategy 机制支持 500+ 第三方身份源。它与 luoluo-auth 的差异主要体现在：
+
+| 维度 | Passport.js | luoluo-auth |
+| --- | --- | --- |
+| 定位 | 认证中间件框架 | NestJS 一体化认证授权框架 |
+| 范围 | 只做身份认证 | 认证 + 授权 + 会话治理 + 安全加固 |
+| 生态 | 500+ 策略（Google、GitHub、SAML、OIDC 等） | 内置 JWT/随机 Token、RBAC、OAuth2/OIDC、SSO、签名、限流、审计 |
+| 会话模型 | 通常无状态 JWT 或 Session Cookie | 以服务端 Session 为中心，支持单点/多点/互斥登录、踢人、封禁、滑动续签 |
+| NestJS 集成 | 通过 @nestjs/passport 二次包装 | 原生动态模块，直接注入使用 |
+| 扩展性 | 策略可插拔，社区成熟 | 模块可插拔，提供 Passport 适配器复用部分生态 |
+
+**选型建议**
+
+- 需要接入大量第三方身份源，或项目基于 Express/Fastify，选 Passport.js。
+- 在 NestJS 中需要完整的会话治理、RBAC、OAuth2 Server、SSO、API 签名等一体化能力，选 luoluo-auth。
+
+### 与 Sa-Token (Java) 对比
+
+luoluo-auth 在设计上大量参考了 Java 生态的 Sa-Token，目标是把 Sa-Token 的会话治理理念带到 Node.js / NestJS 技术栈：
+
+| 维度 | Sa-Token (Java) | luoluo-auth |
+| --- | --- | --- |
+| 语言/运行时 | Java / JVM | TypeScript / Node.js |
+| 框架集成 | Spring Boot / Spring Cloud | NestJS |
+| 会话模型 | 以 Session 为中心，支持分布式 Session | 同样以 Session 为中心，支持 Memory / Redis Store |
+| 登录策略 | 单点/多点/互斥登录 | 完整移植：single / multiple / mutual-exclusion |
+| Token 风格 | 默认随机 Token，支持 JWT 扩展 | 默认 JWT，支持 UUID-v7 / ULID / 随机字符串 Token |
+| RBAC | 内置角色权限、路由拦截 | 内置 PermissionEngine + 装饰器 |
+| SSO / OAuth2 | 内置 Sa-Token-SSO、Sa-Token-OAuth2 | 内置 SsoModule、OAuth2Module |
+| 微服务 | 支持 Dubbo、Spring Cloud 等 | 支持 gRPC / TCP（@nestjs/microservices） |
+| 类型安全 | 基于 Java 泛型 | TypeScript 原生，装饰器元数据驱动 |
+| 生态成熟度 | 社区大、插件多 | 新兴项目，聚焦 NestJS 生态 |
+
+**选型建议**
+
+- 技术栈为 Java/Spring Boot，选 Sa-Token。
+- 技术栈为 Node.js/NestJS，且需要 Sa-Token 风格的会话治理与权限体系，选 luoluo-auth。
+
 ## 测试
 
 ```bash
