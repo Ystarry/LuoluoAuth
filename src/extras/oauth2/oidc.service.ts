@@ -88,14 +88,29 @@ export class OidcService {
   /**
    * 验证 ID Token 签名并返回 payload
    * 主要用于测试场景
+   * verifyIdToken 增加 audience 与 nonce 校验； exp 由 jsonwebtoken.verify 默认校验
    * @param idToken - ID Token 字符串
+   * @param audience - 期望的受众（client_id），可选
+   * @param nonce - 授权请求中传入的 nonce，可选
    * @returns 解码后的 payload
+   * @throws Error 当签名、issuer、audience、nonce 或 exp 校验失败时抛出
    */
-  verifyIdToken(idToken: string): Record<string, unknown> {
-    return verify(idToken, this.config.secret, {
+  verifyIdToken(
+    idToken: string,
+    audience?: string,
+    nonce?: string,
+  ): Record<string, unknown> {
+    const payload = verify(idToken, this.config.secret, {
       algorithms: ['HS256'],
       issuer: this.config.issuer,
+      ...(audience ? { audience } : {}),
     }) as Record<string, unknown>;
+
+    if (nonce && payload.nonce !== nonce) {
+      throw new Error('Invalid nonce in ID Token');
+    }
+
+    return payload;
   }
 
   /**
