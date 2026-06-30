@@ -474,9 +474,7 @@ export class AuthModule {
    * @param expiresIn - JWT 过期时间
    * @returns 对应的毫秒数，无法解析时返回 0
    */
-  private static expiresInToMs(
-    expiresIn: string | number | undefined,
-  ): number {
+  private static expiresInToMs(expiresIn: string | number | undefined): number {
     if (expiresIn === undefined) {
       return 0;
     }

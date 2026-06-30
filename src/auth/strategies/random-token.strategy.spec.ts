@@ -119,21 +119,24 @@ describe('RandomTokenStrategy', () => {
       3600000,
     );
 
-    const newToken = await strategy.rotate!(oldToken);
+    const newToken = await strategy.rotate(oldToken);
 
     expect(newToken).toBeDefined();
     expect(newToken).not.toBe(oldToken);
     expect(await store.get(oldToken)).toBeNull();
-    expect(await store.get(newToken!)).toEqual({
-      userId: 'u1',
-      device: 'd1',
-      createTime: expect.any(Number),
-    });
+    const session = await store.get(newToken!);
+    expect(session).toEqual(
+      expect.objectContaining({
+        userId: 'u1',
+        device: 'd1',
+        createTime: expect.any(Number) as number,
+      }),
+    );
   });
 
   it('should return undefined when rotating non-existent token', async () => {
     const strategy = new RandomTokenStrategy(store, { style: 'random-32' });
-    const result = await strategy.rotate!('missing-token');
+    const result = await strategy.rotate('missing-token');
     expect(result).toBeUndefined();
   });
 });

@@ -102,7 +102,8 @@ export class MicroserviceAuthInterceptor implements NestInterceptor {
         ? authHeader.slice(7)
         : authHeader;
       // 将 Token 缓存到请求对象中，供后续 RPC 调用使用
-      (request as unknown as Record<string, unknown>)['__rpc_auth_token'] = token;
+      (request as unknown as Record<string, unknown>)['__rpc_auth_token'] =
+        token;
     }
   }
 
@@ -177,7 +178,9 @@ export class MicroserviceAuthInterceptor implements NestInterceptor {
     // 3. 当前 HTTP 请求对象中缓存的 Token（attachTokenFromHttp 写入）
     const req = this.getCurrentHttpRequest?.();
     if (req) {
-      return (req as unknown as Record<string, unknown>)['__rpc_auth_token'] as string | undefined;
+      return (req as unknown as Record<string, unknown>)['__rpc_auth_token'] as
+        | string
+        | undefined;
     }
 
     return undefined;
