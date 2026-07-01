@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1080" height="1280" viewBox="0 0 1080 1280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 22px; font-weight: 700; fill: #1f2937; }
+      .subtitle { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 12px; font-weight: 500; fill: #6b7280; }
+      .layer-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 15px; font-weight: 700; fill: #ffffff; }
+      .box-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 12px; font-weight: 600; fill: #374151; }
+      .small-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 10px; font-weight: 400; fill: #4b5563; }
+      .legend-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 11px; font-weight: 500; fill: #374151; }
+    </style>
+
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#9ca3af"/>
+    </marker>
+
+    <linearGradient id="grad-layer-1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="grad-layer-2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="grad-layer-3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="grad-layer-4" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="grad-layer-5" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="grad-layer-6" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1080" height="1280" fill="#f8fafc"/>
+
+  <!-- 标题 -->
+  <text x="540" y="42" text-anchor="middle" class="title">luoluo-auth 项目架构图</text>
+  <text x="540" y="66" text-anchor="middle" class="subtitle">面向 NestJS 生态的企业级全场景认证授权框架</text>
+
+  <!-- 左侧：纵向分层架构 -->
+  <g transform="translate(40, 95)">
+    <text x="0" y="-10" class="box-text" style="font-size:14px;fill:#1f2937;">纵向分层架构</text>
+
+    <!-- 应用层 -->
+    <rect x="0" y="0" width="240" height="40" rx="6" fill="url(#grad-layer-1)" filter="url(#shadow)"/>
+    <text x="120" y="25" text-anchor="middle" class="layer-title">应用层</text>
+
+    <!-- 服务层 -->
+    <rect x="0" y="55" width="240" height="40" rx="6" fill="url(#grad-layer-2)" filter="url(#shadow)"/>
+    <text x="120" y="80" text-anchor="middle" class="layer-title">服务层</text>
+
+    <!-- 策略层 -->
+    <rect x="0" y="110" width="240" height="40" rx="6" fill="url(#grad-layer-3)" filter="url(#shadow)"/>
+    <text x="120" y="135" text-anchor="middle" class="layer-title">策略层</text>
+
+    <!-- 存储层 -->
+    <rect x="0" y="165" width="240" height="40" rx="6" fill="url(#grad-layer-4)" filter="url(#shadow)"/>
+    <text x="120" y="190" text-anchor="middle" class="layer-title">存储层</text>
+
+    <!-- 基础设施层 -->
+    <rect x="0" y="220" width="240" height="40" rx="6" fill="url(#grad-layer-5)" filter="url(#shadow)"/>
+    <text x="120" y="245" text-anchor="middle" class="layer-title">基础设施层</text>
+
+    <!-- 扩展模块层 -->
+    <rect x="0" y="275" width="240" height="40" rx="6" fill="url(#grad-layer-6)" filter="url(#shadow)"/>
+    <text x="120" y="300" text-anchor="middle" class="layer-title">扩展模块层</text>
+
+    <!-- 层间箭头 -->
+    <line x1="120" y1="40" x2="120" y2="55" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="120" y1="95" x2="120" y2="110" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="120" y1="150" x2="120" y2="165" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="120" y1="205" x2="120" y2="220" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="120" y1="260" x2="120" y2="275" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- 说明 -->
+    <text x="120" y="340" text-anchor="middle" class="small-text">垂直方向：调用链路从上至下</text>
+    <text x="120" y="355" text-anchor="middle" class="small-text">扩展模块横向对接核心层</text>
+  </g>
+
+  <!-- 右侧：核心模块展开 -->
+  <g transform="translate(320, 95)">
+    <text x="0" y="-10" class="box-text" style="font-size:14px;fill:#1f2937;">核心模块展开</text>
+
+    <!-- 行1：应用层 -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="680" height="40" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+      <rect x="12" y="8" width="120" height="24" rx="4" fill="#dbeafe"/>
+      <text x="72" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">@RequireLogin</text>
+      <rect x="142" y="8" width="120" height="24" rx="4" fill="#dbeafe"/>
+      <text x="202" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">@RequireRoles</text>
+      <rect x="272" y="8" width="140" height="24" rx="4" fill="#dbeafe"/>
+      <text x="342" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">@RequirePermissions</text>
+      <rect x="422" y="8" width="120" height="24" rx="4" fill="#dbeafe"/>
+      <text x="482" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">@RequireSafeAuth</text>
+      <rect x="552" y="8" width="120" height="24" rx="4" fill="#dbeafe"/>
+      <text x="612" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">@RequireSignature</text>
+    </g>
+
+    <!-- 行2：服务层 -->
+    <g transform="translate(0, 55)">
+      <rect x="0" y="0" width="680" height="40" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <rect x="12" y="8" width="130" height="24" rx="4" fill="#d1fae5"/>
+      <text x="77" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">AuthService</text>
+      <rect x="152" y="8" width="130" height="24" rx="4" fill="#d1fae5"/>
+      <text x="217" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">PermissionEngine</text>
+      <rect x="292" y="8" width="130" height="24" rx="4" fill="#d1fae5"/>
+      <text x="357" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">AuditService</text>
+      <rect x="432" y="8" width="120" height="24" rx="4" fill="#d1fae5"/>
+      <text x="492" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">CookieService</text>
+      <rect x="562" y="8" width="110" height="24" rx="4" fill="#d1fae5"/>
+      <text x="617" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">AuthGuard</text>
+    </g>
+
+    <!-- 行3：策略层 -->
+    <g transform="translate(0, 110)">
+      <rect x="0" y="0" width="680" height="40" rx="6" fill="#fffbeb" stroke="#fde68a" stroke-width="1"/>
+      <rect x="12" y="8" width="160" height="24" rx="4" fill="#fef3c7"/>
+      <text x="92" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">JwtStrategy (HS256)</text>
+      <rect x="182" y="8" width="200" height="24" rx="4" fill="#fef3c7"/>
+      <text x="282" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">RandomTokenStrategy (UUID-v7 / ULID)</text>
+      <rect x="392" y="8" width="130" height="24" rx="4" fill="#fef3c7"/>
+      <text x="457" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">SignatureGuard</text>
+      <rect x="532" y="8" width="140" height="24" rx="4" fill="#fef3c7"/>
+      <text x="602" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">WsAuthGuard</text>
+    </g>
+
+    <!-- 行4：存储层 -->
+    <g transform="translate(0, 165)">
+      <rect x="0" y="0" width="680" height="40" rx="6" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1"/>
+      <rect x="12" y="8" width="160" height="24" rx="4" fill="#ede9fe"/>
+      <text x="92" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">MemoryStore (LRU)</text>
+      <rect x="182" y="8" width="230" height="24" rx="4" fill="#ede9fe"/>
+      <text x="297" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">RedisStore (Set 索引 + 僵尸清理)</text>
+      <rect x="422" y="8" width="120" height="24" rx="4" fill="#ede9fe"/>
+      <text x="482" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">NonceStore</text>
+      <rect x="552" y="8" width="120" height="24" rx="4" fill="#ede9fe"/>
+      <text x="612" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">RateLimiter</text>
+    </g>
+
+    <!-- 行5：基础设施层 -->
+    <g transform="translate(0, 220)">
+      <rect x="0" y="0" width="680" height="40" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+      <rect x="12" y="8" width="120" height="24" rx="4" fill="#e2e8f0"/>
+      <text x="72" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">DistributedLock</text>
+      <rect x="142" y="8" width="160" height="24" rx="4" fill="#e2e8f0"/>
+      <text x="222" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">PersistenceAdapter</text>
+      <rect x="312" y="8" width="130" height="24" rx="4" fill="#e2e8f0"/>
+      <text x="377" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">PasswordEncoder</text>
+      <rect x="452" y="8" width="110" height="24" rx="4" fill="#e2e8f0"/>
+      <text x="507" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">I18nService</text>
+      <rect x="572" y="8" width="100" height="24" rx="4" fill="#e2e8f0"/>
+      <text x="622" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">AuthFilter</text>
+    </g>
+
+    <!-- 行6：扩展模块层 -->
+    <g transform="translate(0, 275)">
+      <rect x="0" y="0" width="680" height="40" rx="6" fill="#fdf2f8" stroke="#fbcfe8" stroke-width="1"/>
+      <rect x="8" y="8" width="110" height="24" rx="4" fill="#fce7f3"/>
+      <text x="63" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">OAuth2 / OIDC</text>
+      <rect x="128" y="8" width="70" height="24" rx="4" fill="#fce7f3"/>
+      <text x="163" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">SSO</text>
+      <rect x="208" y="8" width="95" height="24" rx="4" fill="#fce7f3"/>
+      <text x="255" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">Microservice</text>
+      <rect x="313" y="8" width="75" height="24" rx="4" fill="#fce7f3"/>
+      <text x="350" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">Passport</text>
+      <rect x="398" y="8" width="65" height="24" rx="4" fill="#fce7f3"/>
+      <text x="430" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">Admin</text>
+      <rect x="473" y="8" width="90" height="24" rx="4" fill="#fce7f3"/>
+      <text x="518" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">Cookie</text>
+      <rect x="573" y="8" width="95" height="24" rx="4" fill="#fce7f3"/>
+      <text x="620" y="23" text-anchor="middle" class="box-text" style="font-size:11px;">Third-Party</text>
+    </g>
+  </g>
+
+  <!-- 图例 -->
+  <g transform="translate(40, 490)">
+    <text x="0" y="-5" class="box-text" style="font-size:13px;fill:#1f2937;">图例</text>
+    <rect x="0" y="0" width="16" height="16" rx="3" fill="#3b82f6"/>
+    <text x="22" y="12" class="legend-text">应用层</text>
+    <rect x="90" y="0" width="16" height="16" rx="3" fill="#10b981"/>
+    <text x="112" y="12" class="legend-text">服务层</text>
+    <rect x="180" y="0" width="16" height="16" rx="3" fill="#f59e0b"/>
+    <text x="202" y="12" class="legend-text">策略层</text>
+    <rect x="270" y="0" width="16" height="16" rx="3" fill="#8b5cf6"/>
+    <text x="292" y="12" class="legend-text">存储层</text>
+    <rect x="360" y="0" width="16" height="16" rx="3" fill="#64748b"/>
+    <text x="382" y="12" class="legend-text">基础设施层</text>
+    <rect x="470" y="0" width="16" height="16" rx="3" fill="#ec4899"/>
+    <text x="492" y="12" class="legend-text">扩展模块层</text>
+  </g>
+
+  <!-- 下左：数据流图 -->
+  <g transform="translate(40, 575)">
+    <text x="0" y="-10" class="box-text" style="font-size:14px;fill:#1f2937;">认证请求处理流程</text>
+
+    <!-- 步骤框 -->
+    <rect x="0" y="0" width="110" height="38" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="55" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">1. 请求进入</text>
+    <text x="55" y="30" text-anchor="middle" class="small-text">HTTP / WS / RPC</text>
+
+    <line x1="110" y1="19" x2="135" y2="19" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="135" y="0" width="110" height="38" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="190" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">2. 守卫鉴权</text>
+    <text x="190" y="30" text-anchor="middle" class="small-text">AuthGuard / WsAuthGuard</text>
+
+    <line x1="245" y1="19" x2="270" y2="19" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="270" y="0" width="110" height="38" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="325" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">3. Token 校验</text>
+    <text x="325" y="30" text-anchor="middle" class="small-text">JWT / Random Token</text>
+
+    <line x1="380" y1="19" x2="405" y2="19" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="405" y="0" width="110" height="38" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="460" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">4. 权限校验</text>
+    <text x="460" y="30" text-anchor="middle" class="small-text">RBAC + 二级认证</text>
+
+    <line x1="515" y1="19" x2="540" y2="19" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="540" y="0" width="110" height="38" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="595" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">5. 审计记录</text>
+    <text x="595" y="30" text-anchor="middle" class="small-text">AuditService</text>
+
+    <line x1="650" y1="19" x2="675" y2="19" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="675" y="0" width="110" height="38" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="730" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">6. 执行业务</text>
+    <text x="730" y="30" text-anchor="middle" class="small-text">Controller Handler</text>
+
+    <!-- 失败分支 -->
+    <path d="M325,38 L325,58 L730,58 L730,38" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4"/>
+    <text x="527" y="52" text-anchor="middle" class="small-text" style="fill:#ef4444;">校验失败 → AuthExceptionFilter 统一处理</text>
+  </g>
+
+  <!-- 下中：扩展模块数据流 -->
+  <g transform="translate(40, 705)">
+    <text x="0" y="-10" class="box-text" style="font-size:14px;fill:#1f2937;">扩展模块调用关系</text>
+
+    <!-- Client App -->
+    <rect x="0" y="0" width="90" height="40" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="45" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">Client App</text>
+    <text x="45" y="31" text-anchor="middle" class="small-text">SPA / App</text>
+
+    <!-- OAuth2 / OIDC -->
+    <rect x="110" y="0" width="110" height="40" rx="5" fill="#ffffff" stroke="#ec4899" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="165" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">OAuth2 / OIDC</text>
+    <text x="165" y="31" text-anchor="middle" class="small-text">授权码 / PKCE</text>
+
+    <!-- SSO -->
+    <rect x="250" y="0" width="90" height="40" rx="5" fill="#ffffff" stroke="#ec4899" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="295" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">SSO</text>
+    <text x="295" y="31" text-anchor="middle" class="small-text">跨域单点登录</text>
+
+    <!-- Microservice -->
+    <rect x="370" y="0" width="110" height="40" rx="5" fill="#ffffff" stroke="#ec4899" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="425" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">Microservice</text>
+    <text x="425" y="31" text-anchor="middle" class="small-text">gRPC / TCP</text>
+
+    <!-- Passport -->
+    <rect x="510" y="0" width="90" height="40" rx="5" fill="#ffffff" stroke="#ec4899" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="555" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">Passport</text>
+    <text x="555" y="31" text-anchor="middle" class="small-text">适配器</text>
+
+    <!-- Admin -->
+    <rect x="630" y="0" width="70" height="40" rx="5" fill="#ffffff" stroke="#ec4899" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="665" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">Admin</text>
+    <text x="665" y="31" text-anchor="middle" class="small-text">管理接口</text>
+
+    <!-- Third-Party -->
+    <rect x="720" y="0" width="90" height="40" rx="5" fill="#ffffff" stroke="#ec4899" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="765" y="17" text-anchor="middle" class="box-text" style="font-size:11px;">Third-Party</text>
+    <text x="765" y="31" text-anchor="middle" class="small-text">OAuth2 / SAML</text>
+
+    <!-- Client App -> OAuth2 -->
+    <line x1="90" y1="20" x2="110" y2="20" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- 扩展模块 -> AuthService -->
+    <line x1="165" y1="40" x2="350" y2="85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="290" y1="40" x2="375" y2="85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="420" y1="40" x2="400" y2="85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="560" y1="40" x2="420" y2="85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="670" y1="40" x2="440" y2="85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="775" y1="40" x2="460" y2="85" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- AuthService -->
+    <rect x="300" y="85" width="180" height="45" rx="5" fill="#ffffff" stroke="#10b981" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="390" y="105" text-anchor="middle" class="box-text" style="font-size:11px;">AuthService</text>
+    <text x="390" y="119" text-anchor="middle" class="small-text">登录 / 会话管理</text>
+
+    <!-- AuthService -> Session Store -->
+    <line x1="390" y1="130" x2="390" y2="200" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <!-- Session Store -->
+    <rect x="320" y="200" width="140" height="45" rx="5" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="390" y="220" text-anchor="middle" class="box-text" style="font-size:11px;">Session Store</text>
+    <text x="390" y="234" text-anchor="middle" class="small-text">Memory / Redis</text>
+
+    <!-- Third-Party Detail -->
+    <text x="740" y="270" class="box-text" style="font-size:14px;fill:#1f2937;">Third-Party Login</text>
+    <rect x="690" y="115" width="210" height="130" rx="6" fill="#fdf2f8" stroke="#fbcfe8" stroke-width="1"/>
+    <!-- Protocol Layer -->
+    <rect x="700" y="130" width="60" height="30" rx="4" fill="#ffffff" stroke="#ec4899" stroke-width="1"/>
+    <text x="730" y="148" text-anchor="middle" class="small-text" style="font-size:9px;">OAuth2Client</text>
+    <rect x="770" y="130" width="45" height="30" rx="4" fill="#ffffff" stroke="#ec4899" stroke-width="1"/>
+    <text x="790" y="148" text-anchor="middle" class="small-text" style="font-size:9px;">SAML</text>
+    <rect x="830" y="130" width="60" height="30" rx="4" fill="#ffffff" stroke="#ec4899" stroke-width="1"/>
+    <text x="860" y="148" text-anchor="middle" class="small-text" style="font-size:9px;">PassportBridge</text>
+    <!-- Provider List -->
+    <rect x="700" y="180" width="190" height="55" rx="4" fill="#ffffff" stroke="#ec4899" stroke-width="1"/>
+    <text x="700" y="198" class="small-text" style="font-size:9px;">Google · Microsoft · GitHub · Apple · QQ</text>
+    <text x="700" y="215" class="small-text" style="font-size:9px;">WeChat · WeCom · DingTalk · Feishu</text>
+
+    <!-- Third-Party -> Third-Party Detail -->
+    <line x1="765" y1="40" x2="785" y2="115" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- 下右：技术栈矩阵 -->
+  <g transform="translate(40, 1020)">
+    <text x="0" y="-10" class="box-text" style="font-size:14px;fill:#1f2937;">技术栈与选型</text>
+
+    <rect x="0" y="0" width="200" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="10" y="13" class="small-text" style="font-weight:600;">核心框架</text>
+    <text x="10" y="26" class="small-text">NestJS 11.x + TypeScript 5.7</text>
+
+    <rect x="210" y="0" width="200" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="220" y="13" class="small-text" style="font-weight:600;">Token 协议</text>
+    <text x="220" y="26" class="small-text">JWT HS256 / UUID-v7 / ULID</text>
+
+    <rect x="420" y="0" width="200" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="430" y="13" class="small-text" style="font-weight:600;">缓存 / 会话</text>
+    <text x="430" y="26" class="small-text">Redis 7.x（ioredis）</text>
+
+    <rect x="630" y="0" width="190" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="640" y="13" class="small-text" style="font-weight:600;">密码哈希</text>
+    <text x="640" y="26" class="small-text">BCrypt / Argon2</text>
+
+    <rect x="0" y="45" width="200" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="10" y="58" class="small-text" style="font-weight:600;">微服务</text>
+    <text x="10" y="71" class="small-text">gRPC / TCP + AsyncLocalStorage</text>
+
+    <rect x="210" y="45" width="200" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="220" y="58" class="small-text" style="font-weight:600;">持久化</text>
+    <text x="220" y="71" class="small-text">MySQL / PG / Oracle / SQLite / Mongo</text>
+
+    <rect x="420" y="45" width="200" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="430" y="58" class="small-text" style="font-weight:600;">测试框架</text>
+    <text x="430" y="71" class="small-text">Jest 30.x</text>
+
+    <rect x="630" y="45" width="190" height="35" rx="4" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="640" y="58" class="small-text" style="font-weight:600;">开发模式</text>
+    <text x="640" y="71" class="small-text">模块化 + AOP 拦截</text>
+  </g>
+
+  
+
+  <!-- 底部说明 -->
+  <g transform="translate(40, 1130)">
+    <rect x="0" y="0" width="1000" height="136" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow)"/>
+    <text x="15" y="22" class="box-text" style="font-size:13px;">设计要点</text>
+    <text x="15" y="42" class="small-text">1. 模块化设计：核心认证能力与 OAuth2、SSO、微服务等扩展能力解耦，按需引入。</text>
+    <text x="15" y="58" class="small-text">2. 策略可插拔：Token 生成策略、Session 存储、限流器、密码编码器、持久化层均通过接口抽象，支持自定义替换。</text>
+    <text x="15" y="74" class="small-text">3. 零侵入集成：基于 NestJS 装饰器、Guard、Interceptor 机制，业务代码只需添加装饰器即可获得完整认证能力。</text>
+    <text x="15" y="90" class="small-text">4. 全场景覆盖：支持 HTTP、WebSocket、gRPC、TCP 等多种协议，覆盖单体应用到微服务架构。</text>
+    <text x="15" y="106" class="small-text">5. 安全优先：设备指纹、API 签名、Nonce 防重放、Refresh Token Rotation、分布式锁等多重安全机制。</text>
+    <text x="15" y="122" class="small-text">6. 第三方登录：协议层 + 内置 Provider + Passport 桥接覆盖 Google、Microsoft、Apple、微信、企业微信、钉钉、飞书、QQ 等主流身份源。</text>
+  </g>
+</svg>
