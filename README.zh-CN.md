@@ -29,7 +29,7 @@ luoluo-auth 是一款专为 NestJS 生态设计的企业级认证授权框架，
 ## 安装
 
 ```bash
-npm install luoluo-auth ioredis jsonwebtoken @nestjs/config @nestjs/microservices @grpc/grpc-js
+npm install luoluo-auth ioredis jsonwebtoken class-validator class-transformer bcrypt argon2 ulid @nestjs/config @nestjs/microservices @grpc/grpc-js
 ```
 ## 项目架构
 
@@ -151,6 +151,7 @@ import { AuthModule } from 'luoluo-auth';
           loginPolicy: 'single',
         },
         useRedis: configService.get('AUTH_REDIS_ENABLED') === 'true',
+         signature: { secret: 'your-signature-secret' },
       }),
       inject: [ConfigService],
     }),
@@ -158,6 +159,7 @@ import { AuthModule } from 'luoluo-auth';
 })
 export class AppModule {}
 ```
+> **注意**：`registerAsync` 模式下必须提供 `signature` 配置项（至少包含非默认值的 `secret`），否则 `SignatureGuard` 在初始化时会因缺少配置而抛出异常。若不需要 API 签名认证，无需在控制器上启用 `@RequireSignature()` 即可。
 
 ### 3. 使用 ConfigService 注册
 
