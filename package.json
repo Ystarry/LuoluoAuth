@@ -143,6 +143,12 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/index.ts$",
+      "<rootDir>/main.ts$",
+      "<rootDir>/app.module.ts$",
+      "<rootDir>/auth/.*/index.ts$"
+    ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
       "global": {
