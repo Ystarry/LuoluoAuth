@@ -1,4 +1,4 @@
-import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RpcException } from '@nestjs/microservices';
 import { AuthGuard } from './auth.guard';
@@ -13,7 +13,7 @@ import {
 } from './auth.decorator';
 
 describe('AuthGuard.forMicroservice', () => {
-  let guard: ReturnType<typeof AuthGuard.forMicroservice>;
+  let guard: AuthGuard;
   let authService: AuthService;
   let cookieService: CookieService;
   let reflector: Reflector;
@@ -33,7 +33,9 @@ describe('AuthGuard.forMicroservice', () => {
     } as unknown as ExecutionContext;
   };
 
-  const createHttpContext = (req: Record<string, unknown> = {}): ExecutionContext => {
+  const createHttpContext = (
+    req: Record<string, unknown> = {},
+  ): ExecutionContext => {
     return {
       getType: () => 'http',
       switchToHttp: () => ({
@@ -50,9 +52,11 @@ describe('AuthGuard.forMicroservice', () => {
       [AUTH_METADATA_KEY]: true,
       ...overrides,
     };
-    (reflector.getAllAndOverride as jest.Mock).mockImplementation((key: string) => {
-      return map[key] ?? undefined;
-    });
+    (reflector.getAllAndOverride as jest.Mock).mockImplementation(
+      (key: string) => {
+        return map[key] ?? undefined;
+      },
+    );
   };
 
   beforeEach(() => {
@@ -89,11 +93,14 @@ describe('AuthGuard.forMicroservice', () => {
     });
 
     const result = await guard.canActivate(
-      createRpcContext({ authorization: 'Bearer valid-token' }) as ExecutionContext,
+      createRpcContext({ authorization: 'Bearer valid-token' }),
     );
 
     expect(result).toBe(true);
-    expect(authService.validateRpcToken).toHaveBeenCalledWith('valid-token', undefined);
+    expect(authService.validateRpcToken).toHaveBeenCalledWith(
+      'valid-token',
+      undefined,
+    );
   });
 
   it('should extract token from plain rpc context', async () => {
@@ -117,20 +124,27 @@ describe('AuthGuard.forMicroservice', () => {
 
     await guard.canActivate(context);
 
-    expect(authService.validateRpcToken).toHaveBeenCalledWith('plain-token', '10.0.0.1');
+    expect(authService.validateRpcToken).toHaveBeenCalledWith(
+      'plain-token',
+      '10.0.0.1',
+    );
   });
 
   it('should throw RpcException when token is missing', async () => {
     setupReflector();
-    await expect(guard.canActivate(createRpcContext() as ExecutionContext)).rejects.toThrow(
+    await expect(guard.canActivate(createRpcContext())).rejects.toThrow(
       RpcException,
     );
   });
 
   it('should throw RpcException when token is invalid', async () => {
     setupReflector();
-    const rpcContext = { getMap: () => ({ authorization: 'Bearer invalid-token' }) };
-    (authService.validateRpcToken as jest.Mock).mockRejectedValue(new Error('invalid'));
+    const rpcContext = {
+      getMap: () => ({ authorization: 'Bearer invalid-token' }),
+    };
+    (authService.validateRpcToken as jest.Mock).mockRejectedValue(
+      new Error('invalid'),
+    );
 
     const context = {
       getType: () => 'rpc',
@@ -144,8 +158,12 @@ describe('AuthGuard.forMicroservice', () => {
 
   it('should throw RpcException when user is banned', async () => {
     setupReflector();
-    const rpcContext = { getMap: () => ({ authorization: 'Bearer token' }) };
-    (authService.validateRpcToken as jest.Mock).mockResolvedValue({ userId: 'u1' });
+    const rpcContext = {
+      getMap: () => ({ authorization: 'Bearer token' }),
+    };
+    (authService.validateRpcToken as jest.Mock).mockResolvedValue({
+      userId: 'u1',
+    });
     (authService.isBanned as jest.Mock).mockResolvedValue(true);
 
     const context = {
@@ -160,7 +178,9 @@ describe('AuthGuard.forMicroservice', () => {
 
   it('should reject when role is missing', async () => {
     setupReflector({ [ROLES_METADATA_KEY]: ['admin'] });
-    const rpcContext = { getMap: () => ({ authorization: 'Bearer token' }) };
+    const rpcContext = {
+      getMap: () => ({ authorization: 'Bearer token' }),
+    };
     (authService.validateRpcToken as jest.Mock).mockResolvedValue({
       userId: 'u1',
       roles: ['user'],
@@ -178,7 +198,9 @@ describe('AuthGuard.forMicroservice', () => {
 
   it('should reject when permission is missing', async () => {
     setupReflector({ [PERMISSIONS_METADATA_KEY]: ['admin:write'] });
-    const rpcContext = { getMap: () => ({ authorization: 'Bearer token' }) };
+    const rpcContext = {
+      getMap: () => ({ authorization: 'Bearer token' }),
+    };
     (authService.validateRpcToken as jest.Mock).mockResolvedValue({
       userId: 'u1',
       permissions: ['user:read'],
@@ -196,8 +218,12 @@ describe('AuthGuard.forMicroservice', () => {
 
   it('should reject when safe auth is required but not active', async () => {
     setupReflector({ [SAFE_AUTH_METADATA_KEY]: true });
-    const rpcContext = { getMap: () => ({ authorization: 'Bearer token' }) };
-    (authService.validateRpcToken as jest.Mock).mockResolvedValue({ userId: 'u1' });
+    const rpcContext = {
+      getMap: () => ({ authorization: 'Bearer token' }),
+    };
+    (authService.validateRpcToken as jest.Mock).mockResolvedValue({
+      userId: 'u1',
+    });
 
     const context = {
       getType: () => 'rpc',
@@ -211,8 +237,12 @@ describe('AuthGuard.forMicroservice', () => {
 
   it('should allow when safe auth is active', async () => {
     setupReflector({ [SAFE_AUTH_METADATA_KEY]: true });
-    const rpcContext = { getMap: () => ({ authorization: 'Bearer token' }) };
-    (authService.validateRpcToken as jest.Mock).mockResolvedValue({ userId: 'u1' });
+    const rpcContext = {
+      getMap: () => ({ authorization: 'Bearer token' }),
+    };
+    (authService.validateRpcToken as jest.Mock).mockResolvedValue({
+      userId: 'u1',
+    });
     (authService.isSafeAuth as jest.Mock).mockReturnValue(true);
 
     const context = {
@@ -239,7 +269,7 @@ describe('AuthGuard.forMicroservice', () => {
       permissions: ['user:read'],
     });
 
-    const result = await guard.canActivate(createHttpContext(req) as ExecutionContext);
+    const result = await guard.canActivate(createHttpContext(req));
 
     expect(result).toBe(true);
     expect(authService.validateToken).toHaveBeenCalledWith(

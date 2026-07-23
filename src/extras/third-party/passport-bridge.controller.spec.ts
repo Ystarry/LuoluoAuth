@@ -8,10 +8,11 @@ import type {
   ThirdPartyLoginHandler,
 } from './interfaces';
 
+type AuthenticateFn = PassportInstance['authenticate'];
+
 describe('PassportBridgeController', () => {
   let controller: PassportBridgeController;
   let authService: AuthService;
-  let passport: PassportInstance;
   let strategies: Record<string, PassportStrategyLike>;
   let loginHandler: ThirdPartyLoginHandler;
 
@@ -32,15 +33,25 @@ describe('PassportBridgeController', () => {
     } as unknown as Request;
   };
 
+  const invokeCallback = (
+    err: Error | null,
+    profile?: Record<string, unknown>,
+  ): AuthenticateFn => {
+    return (
+      _name: string,
+      _options: Record<string, unknown> | undefined,
+      callback?: (err: Error | null, user?: unknown, info?: unknown) => unknown,
+    ) => {
+      return () => {
+        callback?.(err, profile);
+      };
+    };
+  };
+
   beforeEach(() => {
     authService = {
       login: jest.fn().mockResolvedValue('login-token'),
     } as unknown as AuthService;
-
-    passport = {
-      use: jest.fn(),
-      authenticate: jest.fn(),
-    } as unknown as PassportInstance;
 
     strategies = { github: mockStrategy };
 
@@ -52,7 +63,10 @@ describe('PassportBridgeController', () => {
 
     controller = new PassportBridgeController(
       authService,
-      passport,
+      {
+        use: jest.fn(),
+        authenticate: jest.fn(),
+      },
       strategies,
       loginHandler,
     );
@@ -61,7 +75,17 @@ describe('PassportBridgeController', () => {
   describe('login', () => {
     it('should call passport.authenticate for known strategy', () => {
       const authenticateMiddleware = jest.fn();
-      (passport.authenticate as jest.Mock).mockReturnValue(authenticateMiddleware);
+      const passport = {
+        use: jest.fn(),
+        authenticate: jest.fn().mockReturnValue(authenticateMiddleware),
+      } as unknown as PassportInstance;
+
+      controller = new PassportBridgeController(
+        authService,
+        passport,
+        strategies,
+        loginHandler,
+      );
 
       const req = createMockReq();
       const res = createMockRes();
@@ -85,17 +109,6 @@ describe('PassportBridgeController', () => {
   });
 
   describe('callback', () => {
-    const invokeCallback = (
-      err: Error | null,
-      profile?: Record<string, unknown>,
-    ): PassportInstance['authenticate'] => {
-      return jest.fn().mockImplementation((_name, _options, callback) => {
-        return (_req: unknown, _res: unknown, _next: unknown) => {
-          callback!(err, profile);
-        };
-      }) as unknown as PassportInstance['authenticate'];
-    };
-
     it('should authenticate and login on success', async () => {
       const req = createMockReq();
       const res = createMockRes();
@@ -103,17 +116,20 @@ describe('PassportBridgeController', () => {
 
       controller = new PassportBridgeController(
         authService,
-        { use: jest.fn(), authenticate: invokeCallback(null, {
-          id: 'github-123',
-          displayName: 'GitHub User',
-          emails: [{ value: 'github@example.com' }],
-          photos: [{ value: 'https://avatar.png' }],
-        }) } as unknown as PassportInstance,
+        {
+          use: jest.fn(),
+          authenticate: invokeCallback(null, {
+            id: 'github-123',
+            displayName: 'GitHub User',
+            emails: [{ value: 'github@example.com' }],
+            photos: [{ value: 'https://avatar.png' }],
+          }),
+        },
         strategies,
         loginHandler,
       );
 
-      await controller.callback('github', req, res, next);
+      controller.callback('github', req, res, next);
       // callback 内部包含 await，等待微任务完成
       await new Promise((resolve) => setImmediate(resolve));
 
@@ -142,19 +158,22 @@ describe('PassportBridgeController', () => {
       );
     });
 
-    it('should handle authentication error', async () => {
+    it('should handle authentication error', () => {
       const req = createMockReq();
       const res = createMockRes();
       const next = jest.fn() as NextFunction;
 
       controller = new PassportBridgeController(
         authService,
-        { use: jest.fn(), authenticate: invokeCallback(new Error('OAuth denied')) } as unknown as PassportInstance,
+        {
+          use: jest.fn(),
+          authenticate: invokeCallback(new Error('OAuth denied')),
+        },
         strategies,
         loginHandler,
       );
 
-      await controller.callback('github', req, res, next);
+      controller.callback('github', req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -162,19 +181,22 @@ describe('PassportBridgeController', () => {
       );
     });
 
-    it('should handle missing profile', async () => {
+    it('should handle missing profile', () => {
       const req = createMockReq();
       const res = createMockRes();
       const next = jest.fn() as NextFunction;
 
       controller = new PassportBridgeController(
         authService,
-        { use: jest.fn(), authenticate: invokeCallback(null) } as unknown as PassportInstance,
+        {
+          use: jest.fn(),
+          authenticate: invokeCallback(null),
+        },
         strategies,
         loginHandler,
       );
 
-      await controller.callback('github', req, res, next);
+      controller.callback('github', req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -187,16 +209,25 @@ describe('PassportBridgeController', () => {
       const res = createMockRes();
       const next = jest.fn() as NextFunction;
 
-      (loginHandler as jest.Mock).mockRejectedValue(new Error('handler failed'));
+      (loginHandler as jest.Mock).mockRejectedValue(
+        new Error('handler failed'),
+      );
 
       controller = new PassportBridgeController(
         authService,
-        { use: jest.fn(), authenticate: invokeCallback(null, { id: 'github-123', displayName: 'User' }) } as unknown as PassportInstance,
+        {
+          use: jest.fn(),
+          authenticate: invokeCallback(null, {
+            id: 'github-123',
+            displayName: 'User',
+          }),
+        },
         strategies,
         loginHandler,
       );
 
-      await controller.callback('github', req, res, next);
+      controller.callback('github', req, res, next);
+      await new Promise((resolve) => setImmediate(resolve));
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -204,24 +235,27 @@ describe('PassportBridgeController', () => {
       );
     });
 
-    it('should normalize profile with various fields', async () => {
+    it('should normalize profile with various fields', () => {
       const req = createMockReq();
       const res = createMockRes();
       const next = jest.fn() as NextFunction;
 
       controller = new PassportBridgeController(
         authService,
-        { use: jest.fn(), authenticate: invokeCallback(null, {
-          sub: 'sub-123',
-          email: 'direct@example.com',
-          username: 'direct-user',
-          picture: 'https://direct.png',
-        }) } as unknown as PassportInstance,
+        {
+          use: jest.fn(),
+          authenticate: invokeCallback(null, {
+            sub: 'sub-123',
+            email: 'direct@example.com',
+            username: 'direct-user',
+            picture: 'https://direct.png',
+          }),
+        },
         strategies,
         loginHandler,
       );
 
-      await controller.callback('github', req, res, next);
+      controller.callback('github', req, res, next);
 
       expect(loginHandler).toHaveBeenCalledWith(
         expect.objectContaining({

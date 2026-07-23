@@ -26,14 +26,17 @@ describe('PassportBridgeModule', () => {
     expect(passport.use).toHaveBeenCalledWith('google', strategies.google);
     expect(dynamicModule.providers).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ provide: 'PASSPORT_INSTANCE', useValue: passport }),
+        expect.objectContaining({
+          provide: 'PASSPORT_INSTANCE',
+          useValue: passport,
+        }),
         expect.objectContaining({
           provide: 'PASSPORT_STRATEGIES',
           useValue: strategies,
         }),
         expect.objectContaining({
           provide: 'PASSPORT_LOGIN_HANDLER',
-          useValue: expect.any(Function),
+          useValue: expect.any(Function) as unknown,
         }),
       ]),
     );
